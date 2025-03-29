@@ -6,8 +6,8 @@ let isRunning = false; // เช็คว่าผู้เล่นกด Run C
 
 const config = {
     type: Phaser.AUTO,
-    width: 550,
-    height: 450,
+    width: 750,
+    height: 550,
     parent: 'gameContainer',
     physics: { default: "arcade" },
 
@@ -18,8 +18,8 @@ const config = {
             this.load.image("bg", "./image/hmzm_zekz_231108.jpg");
         },
         create: function () {
-            let bg = this.add.image(275, 225, "bg");
-            bg.setDisplaySize(550, 450);
+            let bg = this.add.image(235, 185, "bg");
+            bg.setDisplaySize(750, 550);
 
             player = this.physics.add.sprite(100, 400, "player").setScale(0.5);
             player.setCollideWorldBounds(true);
