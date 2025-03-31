@@ -7,7 +7,7 @@ let isRunning = false; // เช็คว่าผู้เล่นกด Run C
 const config = {
     type: Phaser.AUTO,
     width: 750,
-    height: 550,
+    height: 350,
     parent: 'gameContainer',
     physics: { default: "arcade" },
 
@@ -18,17 +18,36 @@ const config = {
             this.load.image("bg", "./image/hmzm_zekz_231108.jpg");
         },
         create: function () {
-            let bg = this.add.image(235, 185, "bg");
-            bg.setDisplaySize(750, 550);
+            let bg = this.add.image(199, 169, "bg");
+            bg.setDisplaySize(750, 350);
 
-            player = this.physics.add.sprite(100, 400, "player").setScale(0.5);
+            player = this.physics.add.sprite(100, 300, "player").setScale(0.5);
             player.setCollideWorldBounds(true);
 
-            goal = this.physics.add.staticSprite(400, 200, "goal").setScale(0.5);
+            goal = this.physics.add.staticSprite(400, 300, "goal").setScale(0.5);
 
             message = this.add.text(200, 50, "HP: 100", { fontSize: "24px", fill: "#fff" });
 
+            // อ้างอิงถึง outputBox ใน DOM ที่มี ID "console-output"
             outputBox = document.getElementById("console-output");
+
+            // สร้าง Web Worker
+            worker = new Worker('gameWorker.js');
+            worker.onmessage = function (e) {
+                const { moveQueue, error } = e.data;
+                if (error) {
+                    console.error(error);
+                    return;
+                }
+
+                // ส่งคำสั่งเคลื่อนไหวไปให้ตัวละคร
+                if (moveQueue.length > 0) {
+                    handleMoveQueue(moveQueue);
+                }
+            };
+        },
+        update: function () {
+            checkWinCondition();
         }
     }
 };
@@ -39,60 +58,58 @@ const game = new Phaser.Game(config);
 require({ paths: { vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.39.0/min/vs" } });
 require(["vs/editor/editor.main"], function () {
     editor = monaco.editor.create(document.getElementById("editor"), {
-        value: `// ลองเขียนโค้ด เช่น
-console.log("เริ่มเคลื่อนที่...");
-
-setInterval(() => {
-    player.x += 10; // เดินไปขวาเรื่อยๆ
-    console.log("เดินไปข้างหน้า!");
-}, 1000);`,
+        value: `/**
+ * Solve this puzzle by writing the shortest code.
+ * Whitespaces (spaces, new lines, tabs...) are counted in the total amount of chars.
+ **/
+        console.log('E');
+`,
         language: "javascript",
-        theme: "vs-dark"
+        theme: "vs-dark",
+        fontSize: 15,
     });
 });
 
-// 📌 ฟังก์ชันรันโค้ด
 function runCode() {
-    if (isRunning) return; // ป้องกันกดซ้ำ
+    if (isRunning) return;
     isRunning = true;
-    hp = 100;
 
     let code = editor.getValue();
-    clearAllIntervals(); // รีเซ็ต interval ทั้งหมดก่อนเริ่มใหม่
+    
+    // ส่งโค้ดไปยัง Web Worker เพื่อให้มันทำงาน
+    worker.postMessage({
+        code: code
+    });
+}
 
-    // 🔥 ลด HP อัตโนมัติทุก 2 วินาทีเมื่อกด Run Code
-    intervals.push(setInterval(() => {
-        decreaseHP(5);
-    }, 2000));
 
-    try {
-        let sandbox = {
-            player,
-            // console: { log: logToConsole },
-            setTimeout: (fn, time) => setTimeout(() => safeExecute(fn), time),
-            setInterval: (fn, time) => {
-                let id = setInterval(() => safeExecute(fn), time);
-                intervals.push(id);
-                return id;
-            },
-            clearInterval: (id) => clearInterval(id)
-        };
+function handleMoveQueue(moveQueue) {
+    if (!isRunning) return; // หยุดทำงานถ้าเกมจบ
+    isRunning = true;
+    moveQueue.forEach(command => {
+        handleCommand(command);
+    });
 
-        let sandboxProxy = new Proxy(sandbox, {
-            has: () => true,
-            get: (target, prop) => target[prop]
-        });
-
-        let func = new Function("sandbox", `"use strict"; return (function() { ${code} }).call(sandbox)`);
-        func(sandboxProxy);
-
-        checkWinCondition();
-    } catch (error) {
-        
+    // หยุดเมื่อถึงเป้าหมาย
+    if (Phaser.Math.Distance.Between(player.x, player.y, goal.x, goal.y) < 30) {
+        gameOver();
     }
 }
 
-// 📌 ฟังก์ชันลด HP อัตโนมัติ
+
+
+// ฟังก์ชันเคลื่อนที่ของตัวละคร
+// ฟังก์ชันเคลื่อนที่ของตัวละคร
+function handleCommand(command) {
+    console.log(`Moving: ${command}`); // แสดงผลใน Console
+    if (command === 'N') player.y -= 10;
+    else if (command === 'S') player.y += 10;
+    else if (command === 'E') player.x += 10;
+    else if (command === 'W') player.x -= 10;
+}
+
+
+// ฟังก์ชันลด HP อัตโนมัติ
 function decreaseHP(amount) {
     if (!isRunning) return; // ถ้ายังไม่ได้กด Run Code ไม่ต้องลด
     hp -= amount;
@@ -101,29 +118,36 @@ function decreaseHP(amount) {
     if (hp <= 0) gameOver();
 }
 
-// 📌 ฟังก์ชันจบเกม
+// ฟังก์ชันจบเกม
 function gameOver() {
-    logToConsole("💀 Game Over!");
-    message.setText("💀 Game Over!");
-    clearAllIntervals();
+    console.log("🎉 Mission Complete!");
+    message.setText("🎉 Mission Complete!");
+    
+    // หยุด Web Worker
+    worker.terminate();
+    
     isRunning = false; // ให้กด Run Code ใหม่ได้
 }
 
 
-
-
-// 📌 ฟังก์ชันล้าง setInterval ทั้งหมด
+// ฟังก์ชันล้าง setInterval ทั้งหมด
 function clearAllIntervals() {
     intervals.forEach(clearInterval);
     intervals = [];
 }
 
-// 📌 เช็คเงื่อนไขการชนะ
+// เช็คเงื่อนไขการชนะ
 function checkWinCondition() {
     if (Phaser.Math.Distance.Between(player.x, player.y, goal.x, goal.y) < 30) {
-        logToConsole("🎉 Mission Complete!");
-        message.setText("🎉 Mission Complete!");
+        // logToConsole("🎉 Mission Complete!");
+        // message.setText("🎉 Mission Complete!");
         clearAllIntervals();
         isRunning = false; // ให้กด Run Code ใหม่ได้
+        worker.terminate()
     }
+}
+
+// ฟังก์ชันจับคำสั่ง console.log และขยับตัวละคร
+function logToConsole(message) {
+    outputBox.innerHTML += `<p>"Misson complete</p>`;
 }

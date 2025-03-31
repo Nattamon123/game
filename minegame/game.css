@@ -1,6 +1,22 @@
 @import url(//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css);
 
 @import url(https://fonts.googleapis.com/css?family=Titillium+Web:300);
+body { display: flex; background-color: #282e45; }
+
+
+
+
+#editor {
+  width: 100%; /* โค้ดใช้พื้นที่ 45% */
+  height: 450px; /* ลดความสูงลงครึ่งหนึ่ง */
+  border: 2px solid #454c55;
+  border-radius: 5px;
+  right: 10px;
+}
+
+        
+
+
 .fa-2x {
 font-size: 2em;
 }
@@ -126,4 +142,47 @@ height: 100%;
   font-style: normal;
   font-weight: 300;
   src: local('Titillium WebLight'), local('TitilliumWeb-Light'), url(http://themes.googleusercontent.com/static/fonts/titilliumweb/v2/anMUvcNT0H1YN4FII8wpr24bNCNEoFTpS2BTjF6FB5E.woff) format('woff');
+}
+.game-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* จัดให้อยู่กึ่งกลาง */
+  position: absolute;
+  left: 100px;
+  top: 10px;
+}
+
+#console-container {
+  width: 75vh; /* ให้มีขนาดเท่ากับเกม */
+  height: 150px;
+  background: black;
+  color: lime;
+  font-family: monospace;
+  padding: 10px;
+  overflow-y: auto;
+  border: 2px solid #454c55;
+  border-radius: 5px;
+  margin-top: 10px; /* เพิ่มระยะห่างจากเกม */
+}
+
+#gameContainer { 
+    width: 75vh; 
+    height: 45vh; 
+    overflow: hidden; 
+    background: #d7d7d7;
+}
+
+.button {
+    margin-top: 10px; /* ให้ปุ่มอยู่ใต้เกม */
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.button:hover {
+    background-color: #45a049;
 }
