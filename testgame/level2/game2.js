@@ -13,8 +13,8 @@ const GAME_CONFIG = {
 };
 
 const PLAYER_CONFIG = {
-    startX: 200,
-    startY: 150,
+    startX: 280,
+    startY: 200,
     scale: 0.13,
     speed: 60,
     verticalSpeed: 100
@@ -60,9 +60,9 @@ class GameScene extends Phaser.Scene {
         this.load.image('player1', './image/characetor/1.png');
         this.load.image('player2', './image/characetor/2.png');
         this.load.image('player3', './image/characetor/3.png');
-        this.load.image('tresure', './image/tresure.png');
+        this.load.image('tresure', './image/thor-removebg-preview.png');
         this.load.image("mountain", "./image/mt-removebg-preview.png");
-        this.load.image("bg", "./image/Orc-Lands-Horizontal-Battle-Backgrounds2 (1).png");
+        this.load.image("bg", "./image/CrystalCave1-1920x1080-2a8443ca448c40ef77c4da5d220c5e23.webp");
         this.load.image("pilot", "./image/angry-cartoon-viking-man-flat-2d-style_1120558-33845-removebg-preview.png");
         this.load.spritesheet('lightning', './image/lightn.png', { frameWidth: 32, frameHeight: 32 });
 
@@ -103,7 +103,7 @@ class GameScene extends Phaser.Scene {
         }
         
         const messages = [
-            { text: "ยินดีต้อนรับสู่ด่านเงื่อนไข", delay: 0 },
+            { text: "ยินดีต้อนรับสู่ด่านแรกของการทดสอบ", delay: 0 },
             { text: "ใช้คำสั่ง console.log(ทิศทาง) เพื่อให้ไปที่เป้าหมาย", delay: 0 },
             { text: "ระวังอย่าให้ไวกิ้งชนกับขอบของด่าน", delay: 0 }
         ];
@@ -181,8 +181,8 @@ class GameScene extends Phaser.Scene {
     }
 
     createtresure() {
-        gameState.treasure = this.add.image(450, 150, "tresure");
-        gameState.treasure.setScale(0.3);
+        gameState.treasure = this.add.image(260, 110, "tresure");
+        gameState.treasure.setScale(0.2);
     }
 
     drawMountain(mountain) {
@@ -207,7 +207,7 @@ class GameScene extends Phaser.Scene {
     }
 
     createPlayerAnimations() {
-        this.anims.create({
+            this.anims.create({
             key: 'walk',
             frames: [
                 { key: 'player1' },
@@ -216,8 +216,8 @@ class GameScene extends Phaser.Scene {
                 { key: 'player2' }
             ],
             frameRate: 8,
-            repeat: -1
-        });
+                repeat: -1
+            });
     }
 
     initializeWorker() {
@@ -307,13 +307,13 @@ class GameScene extends Phaser.Scene {
                 height: playerBounds.height
             });
             
-            gameState.player.setVelocityX(0);
+                    gameState.player.setVelocityX(0);
             gameState.player.setVelocityY(0);
             gameState.player.anims.stop();
             
             this.handleBoundaryCollision();
-            return;
-        }
+                return;
+            }
             
         if (gameState.player.body.velocity.x !== 0 || gameState.player.body.velocity.y !== 0) {
             gameState.energy -= 0.1;
@@ -380,7 +380,7 @@ class GameScene extends Phaser.Scene {
                 gameState.energyText.setColor('#00ff00');
             } else if (gameState.energy > 20) {
                 gameState.energyText.setColor('#ffff00');
-            } else {
+                } else {
                 gameState.energyText.setColor('#ff0000');
             }
         }
@@ -555,7 +555,7 @@ class GameScene extends Phaser.Scene {
 
         const messages = [
             { text: "ยินดีด้วย! เจ้าได้พบสมบัติแล้ว!", delay: 0 },
-            { text: "ภารกิจสำเร็จ! คุณได้เรียนรู้การใช้ for loop ในการควบคุมตัวละคร", delay: 0 },
+            { text: "ภารกิจสำเร็จ! if condition สำเร็จ", delay: 0 },
             { text: "กดปุ่มใดก็ได้เพื่อไปยังด่านต่อไป", delay: 0 }
         ];
         
@@ -582,7 +582,7 @@ class GameScene extends Phaser.Scene {
                     currentText += text[charIndex];
                     dialogText.setText(currentText);
                     charIndex++;
-                } else {
+            } else {
                     clearInterval(typingInterval);
                     typingInterval = null;
                 }
@@ -595,7 +595,7 @@ class GameScene extends Phaser.Scene {
             currentMessageIndex++;
             if (currentMessageIndex < messages.length) {
                 showTypingMessage(messages[currentMessageIndex].text);
-            } else {
+    } else {
                 dialogBox.destroy();
                 dialogText.destroy();
                 pilot.destroy();
@@ -623,10 +623,14 @@ require(["vs/editor/editor.main"], function () {
  west = ทางซ้าย
  north = ทางขึ้น
  south = ทางลง
- for loop เท่านั้น
+ ตัวแปร player.y คือ ตำแหน่งของผู้เล่นบนแกน y
+ ตัวแปร treasure.y คือ ตำแหน่งของเป้าหมายบนแกน y
  **/
-console.log(east)
-
+if ( /ใส่ตำแหน่งผู้เล่นy/  >= /ใส่ตำแหน่งเป้าหมาย y/) {
+    console.log(north);
+} else {
+    console.log(south);
+}
 
 
 `,
@@ -674,7 +678,7 @@ function setupWorkerHandlers() {
     }
 
     gameState.worker.onmessage = function(e) {
-        const { type, message } = e.data;
+        const { type, message, hasIf } = e.data;
         
         if (type === 'log') {
             const direction = message.trim();
@@ -683,6 +687,21 @@ function setupWorkerHandlers() {
                 currentScene.movePlayer(direction);
             }
             logToConsole(`กำลังเคลื่อนที่ไปทาง: ${direction}`);
+        } else if (type === 'ifCheck') {
+            const ifCheckbox = document.getElementById('if-checkbox');
+            if (ifCheckbox) {
+                if (hasIf) {
+                    ifCheckbox.innerHTML = '✓';
+                    ifCheckbox.parentElement.classList.add('completed');
+                } else {
+                    ifCheckbox.innerHTML = '✗';
+                    ifCheckbox.parentElement.classList.remove('completed');
+                }
+            }
+            logToConsole(message);
+        } else if (type === 'error') {
+            console.error('Worker error:', message);
+            logToConsole(`Error: ${message}`);
         }
     };
 }
@@ -703,7 +722,7 @@ function logToConsole(message) {
         logEntry.style.transition = 'all 0.3s ease';
         
         if (message.includes('กำลังเคลื่อนที่ไปทาง')) {
-            logEntry.style.backgroundColor = 'rgba(200, 200, 200, 0.1)';
+            logEntry.style.backgroundColor = 'rgba(12, 140, 57, 0.1)';
             logEntry.style.borderLeft = '4px solid #999999';
             logEntry.style.color = '#fefefe';
         } else if (typeof message === 'number') {

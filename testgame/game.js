@@ -702,7 +702,7 @@ function logToConsole(message) {
         logEntry.style.transition = 'all 0.3s ease';
         
         if (message.includes('กำลังเคลื่อนที่ไปทาง')) {
-            logEntry.style.backgroundColor = 'rgba(200, 200, 200, 0.1)';
+            logEntry.style.backgroundColor = 'rgba(3, 99, 29, 0.61)';
             logEntry.style.borderLeft = '4px solid #999999';
             logEntry.style.color = '#fefefe';
         } else if (typeof message === 'number') {

@@ -37,16 +37,23 @@ self.onmessage = function(e) {
                     direction = direction.toLowerCase();
                     if (direction === 'east' || direction === 'west' || 
                         direction === 'north' || direction === 'south') {
-                        directionQueue.push(direction);
-                        if (!isProcessing) {
-                            processNextDirection();
-                        }
+                        self.postMessage({ type: 'log', message: direction });
                     }
                 }
             }
         };
 
         try {
+            // ตรวจสอบว่ามีการใช้ if statement หรือไม่
+            const hasIfStatement = /if\s*\(.*\)\s*\{/.test(code);
+            if (!hasIfStatement) {
+                self.postMessage({ 
+                    type: 'error', 
+                    message: 'คุณต้องใช้ if statement เพื่อผ่านด่านนี้!'
+                });
+                return;
+            }
+
             const processedCode = code.replace(/console\.log\((.*?)\)/g, (match, content) => {
                 if (content === 'west' || content === 'east' || content === 'north' || content === 'south') {
                     return `customConsole.log("${content}")`;
@@ -64,11 +71,6 @@ self.onmessage = function(e) {
         } catch (error) {
             console.error('Error executing code:', error);
         }
-    } else {
-        postMessage({ 
-            type: 'error', 
-            error: 'Invalid message type' 
-        });
     }
 };
 
@@ -84,7 +86,6 @@ function handleInit(heights) {
 // Code Execution Handler
 function handleRun(code) {
     try {
-        // สร้าง object ที่ผู้เล่นสามารถเข้าถึงได้
         const gameObjects = {
             player: {
                 get x() { return playerX; },
@@ -96,21 +97,28 @@ function handleRun(code) {
             }
         };
 
-        // แปลง console.log(ทิศทาง) ให้เป็น console.log("ทิศทาง")
+        // ตรวจสอบว่ามีการใช้ if statement หรือไม่
+        const hasIfStatement = /if\s*\(.*\)\s*\{/.test(code);
+        self.postMessage({ 
+            type: 'ifCheck', 
+            hasIf: hasIfStatement,
+            message: hasIfStatement ? 'ตรวจสอบการใช้ if statement: ✓' : 'ตรวจสอบการใช้ if statement: ✗ คุณต้องใช้ if statement เพื่อผ่านด่านนี้!'
+        });
+
         const processedCode = code.replace(/console\.log\((.*?)\)/g, (match, content) => {
             return `customConsole.log(${content})`;
         });
 
-        // รวมโค้ดทั้งหมดและรัน
         const fullCode = `
             const customConsole = {
                 log: function(direction) {
                     if (typeof direction === 'string') {
                         direction = direction.toLowerCase();
-                        if (direction === 'east' || direction === 'west') {
-                            if (lastDirection !== direction) {
-                                self.postMessage({ type: 'log', message: direction });
-                                lastDirection = direction;
+                        if (direction === 'east' || direction === 'west' || 
+                            direction === 'north' || direction === 'south') {
+                            directionQueue.push(direction);
+                            if (!isProcessing) {
+                                processNextDirection();
                             }
                         }
                     }
