@@ -643,7 +643,7 @@ height: 100%;
 .level-item {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 8px;
-    padding: 15px;
+    padding: 10px;
     transition: all 0.3s ease;
     cursor: pointer;
     position: relative;
@@ -659,7 +659,7 @@ height: 100%;
 .level-item.active {
     background: rgba(0, 255, 0, 0.2);
     border: 2px solid #00ff00;
-    transform: scale(1.05);
+    transform: scale(1.0);
     box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
 }
 

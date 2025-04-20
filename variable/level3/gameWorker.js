@@ -9,39 +9,76 @@ self.onmessage = function(e) {
     
     if (type === 'run') {
         try {
-            // ตรวจสอบรหัสผ่าน
+            // ตรวจสอบการประกาศ Array และลำดับหนังสือ
             const trimmedCode = code.trim();
             
-            // แสดงโค้ดที่ได้รับมาเพื่อตรวจสอบ
-            
+            // ตรวจสอบว่ามีการประกาศตัวแปร books และมีการใช้ console.log(books) หรือไม่
+            const hasBooksDeclaration = trimmedCode.includes('let books = [') || 
+                                      trimmedCode.includes('const books = [');
+            const hasConsoleLog = trimmedCode.includes('console.log(books)');
 
-            // ตรวจสอบว่ามีการประกาศตัวแปร chest และมีการใช้ console.log(chest) หรือไม่
-            const hasPasscodeDeclaration = trimmedCode.includes('let chest = "เปิดกล่อง"') || 
-                                          trimmedCode.includes('chest = "เปิดกล่อง"');
-            const hasConsoleLog = trimmedCode.includes('console.log(chest)');
+            if (hasBooksDeclaration && hasConsoleLog) {
+                // ตรวจสอบลำดับหนังสือที่ถูกต้อง
+                const correctBooks = ['หนังสือประวัติศาสตร์', 'หนังสือวิทยาศาสตร์', 'หนังสือคณิตศาสตร์'];
+                
+                // แยกข้อความใน Array ออกมา
+                const arrayContent = trimmedCode.match(/\[(.*?)\]/);
+                if (arrayContent) {
+                    const books = arrayContent[1].split(',').map(book => book.trim().replace(/"/g, ''));
+                    
+                    // ตรวจสอบว่ามีหนังสือที่ไม่ถูกต้องหรือไม่
+                    const invalidBooks = books.filter(book => !correctBooks.includes(book));
+                    
+                    if (invalidBooks.length > 0) {
+                        self.postMessage({
+                            type: 'error',
+                            error: `ไม่มีหนังสือนี้: ${invalidBooks.join(', ')}`
+                        });
+                        return;
+                    }
+                    
+                    // ตรวจสอบว่ามีหนังสือครบทุกเล่มหรือไม่
+                    const hasAllBooks = correctBooks.every(book => books.includes(book));
+                    
+                    if (!hasAllBooks) {
+                        self.postMessage({
+                            type: 'error',
+                            error: 'กรุณาใส่ชื่อหนังสือให้ถูกต้อง: หนังสือประวัติศาสตร์, หนังสือวิทยาศาสตร์, หนังสือคณิตศาสตร์'
+                        });
+                        return;
+                    }
 
-            if (hasPasscodeDeclaration && hasConsoleLog) {
-                // ส่งค่ากลับไปที่เกม
-                self.postMessage({
-                    type: 'variable',
-                    variableName: 'chest',
-                    value: "เปิดกล่อง"
-                });
-                self.postMessage({
-                    type: 'log',
-                    message: 'รหัสผ่านถูกต้อง!'
-                });
-            } else if (!hasPasscodeDeclaration) {
-                // ส่งข้อความแจ้งเตือนถ้าไม่ได้ประกาศตัวแปร chest
+                    // ส่งค่ากลับไปที่เกมก่อนเพื่อให้หนังสือขยับ
+                    self.postMessage({
+                        type: 'variable',
+                        variableName: 'books',
+                        value: books
+                    });
+
+                    // ตรวจสอบลำดับที่ถูกต้อง
+                    const isOrderCorrect = books.every((book, index) => book === correctBooks[index]);
+                    
+                    if (!isOrderCorrect) {
+                        self.postMessage({
+                            type: 'log',
+                            message: 'กรุณาเรียงลำดับหนังสือให้ถูกต้อง: หนังสือประวัติศาสตร์, หนังสือวิทยาศาสตร์, หนังสือคณิตศาสตร์'
+                        });
+                    } else {
+                        self.postMessage({
+                            type: 'log',
+                            message: 'ลำดับหนังสือถูกต้อง!'
+                        });
+                    }
+                }
+            } else if (!hasBooksDeclaration) {
                 self.postMessage({
                     type: 'error',
-                    error: 'กรุณาประกาศตัวแปร chest: let chest = "เปิดกล่อง"'
+                    error: 'กรุณาประกาศตัวแปร books: let books = ["หนังสือประวัติศาสตร์", "หนังสือวิทยาศาสตร์", "หนังสือคณิตศาสตร์"]'
                 });
             } else if (!hasConsoleLog) {
-                // ส่งข้อความแจ้งเตือนถ้าไม่ได้ใช้ console.log
                 self.postMessage({
                     type: 'error',
-                    error: 'กรุณาใช้ console.log(chest) เพื่อส่งคำตอบ'
+                    error: 'กรุณาใช้ console.log(books) เพื่อแสดงผล'
                 });
             }
         } catch (error) {

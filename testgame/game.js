@@ -623,7 +623,6 @@ require(["vs/editor/editor.main"], function () {
  west = ทางซ้าย
  north = ทางขึ้น
  south = ทางลง
- for loop เท่านั้น
  **/
 console.log(east)
 

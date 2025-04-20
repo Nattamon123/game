@@ -1,4 +1,3 @@
-// Game Configuration
 const GAME_CONFIG = {
     type: Phaser.AUTO,
     width: 800,
@@ -13,10 +12,8 @@ const GAME_CONFIG = {
     }
 };
 
-// Mountain Configuration
 
 
-// Player Configuration
 const PLAYER_CONFIG = {
     startX: 400,
     startY: 60,
@@ -24,7 +21,6 @@ const PLAYER_CONFIG = {
     speed: 150
 };
 
-// Game State
 let gameState = {
     player: null,
     variables: {},
@@ -43,7 +39,6 @@ let gameState = {
     completedLevels: new Set(),
 };
 
-// Game Scene Class
 class GameScene extends Phaser.Scene {
     constructor() {
         super({ key: 'GameScene' });
@@ -62,113 +57,128 @@ class GameScene extends Phaser.Scene {
         this.createBackground();
         this.createPlayer();
         this.createpaper();
-        // เช็คและล็อคด่านที่ยังไม่ถึง
-        const dialogBox = this.add.graphics();
-        const x = 90;
-        const y = 290;
         
-        // วาดกล่องข้อความ
-        dialogBox.fillStyle(0x000000, 0.8);
-        dialogBox.fillRect(x, y, 600, 100);
-        dialogBox.lineStyle(2, 0xffffff);
-        dialogBox.strokeRect(x, y, 600, 100);
-
-        // ประกาศตัวแปร pilot ในระดับที่สามารถเข้าถึงได้จากทุกที่ใน create()
-        let pilot = null;
+        this.dialogComponents = {
+            box: null,
+            text: null,
+            pilot: null,
+            blur: null,
+            interval: null
+        };
         
-        // เพิ่มรูปนักบิน
-        try {
-            pilot = this.add.sprite(x + -20, y + 10, 'thief');
-            pilot.setScale(0.5);
-            pilot.setDepth(1002); // ให้แน่ใจว่าอยู่ด้านบนสุด
-            console.log('Pilot sprite created successfully');
-        } catch (error) {
-            console.error('Error creating pilot sprite:', error);
-        }
+        this.createDialog = (messages) => {
+            this.input.off('pointerdown', this.handleDialogClick);
+            
+            this.cleanupDialog();
+            
+            const x = 90;
+            const y = 250;
+            
+            this.dialogComponents.box = this.add.graphics();
+            this.dialogComponents.box.fillStyle(0x000000, 0.8);
+            this.dialogComponents.box.fillRect(x, y, 600, 100);
+            this.dialogComponents.box.lineStyle(2, 0xffffff);
+            this.dialogComponents.box.strokeRect(x, y, 600, 100);
+            
+            this.dialogComponents.pilot = this.add.sprite(x - 20, y + 10, 'thief');
+            this.dialogComponents.pilot.setScale(0.5);
+            
+            this.dialogComponents.text = this.add.text(x + 120, y + 30, '', {
+                fontSize: '15px',
+                fontFamily: 'Arial',
+                color: '#ffffff',
+                wordWrap: { width: 560 }
+            });
+            
+            this.dialogComponents.blur = this.add.graphics();
+            this.dialogComponents.blur.fillStyle(0x000000, 0.5);
+            this.dialogComponents.blur.fillRect(0, 0, GAME_CONFIG.width, GAME_CONFIG.height);
+            
+            this.dialogComponents.box.setDepth(1000);
+            this.dialogComponents.text.setDepth(1001);
+            this.dialogComponents.pilot.setDepth(1002);
+            this.dialogComponents.blur.setDepth(999);
+            
+            this.dialogMessages = messages;
+            this.currentMessageIndex = 0;
+            
+            this.showNextMessage();
+            
+            this.input.on('pointerdown', this.handleDialogClick);
+        };
         
-        // สร้างข้อความ
-        const messages = [
+        // ฟังก์ชันสำหรับแสดงข้อความถัดไป
+        this.showNextMessage = () => {
+            if (this.dialogComponents.interval) {
+                clearInterval(this.dialogComponents.interval);
+            }
+            
+            if (this.currentMessageIndex >= this.dialogMessages.length) {
+                this.cleanupDialog();
+                return;
+            }
+            
+            const text = this.dialogMessages[this.currentMessageIndex].text;
+            let currentText = '';
+            let charIndex = 0;
+            
+            this.dialogComponents.interval = setInterval(() => {
+                if (charIndex < text.length) {
+                    currentText += text[charIndex];
+                    this.dialogComponents.text.setText(currentText);
+                    charIndex++;
+                } else {
+                    clearInterval(this.dialogComponents.interval);
+                    this.dialogComponents.interval = null;
+                }
+            }, 50);
+        };
+        
+        // ฟังก์ชันจัดการการคลิก
+        this.handleDialogClick = () => {
+            this.currentMessageIndex++;
+            this.showNextMessage();
+        };
+        
+        // ฟังก์ชันทำความสะอาด
+        this.cleanupDialog = () => {
+            if (this.dialogComponents.interval) {
+                clearInterval(this.dialogComponents.interval);
+            }
+            
+            if (this.dialogComponents.box) {
+                this.dialogComponents.box.destroy();
+            }
+            if (this.dialogComponents.text) {
+                this.dialogComponents.text.destroy();
+            }
+            if (this.dialogComponents.pilot) {
+                this.dialogComponents.pilot.destroy();
+            }
+            if (this.dialogComponents.blur) {
+                this.dialogComponents.blur.destroy();
+            }
+            
+            this.input.off('pointerdown', this.handleDialogClick);
+            
+            // รีเซ็ตตัวแปร
+            this.dialogComponents = {
+                box: null,
+                text: null,
+                pilot: null,
+                blur: null,
+                interval: null
+            };
+        };
+        
+        // แสดงบทสนทนาเริ่มต้น
+        const welcomeMessages = [
             { text: "ยินดีต้อนรับสู่ด่านแห่งตัวแปร String", delay: 0 },
             { text: "ใช้คำสั่ง let,const เพื่อสร้างตัวแปร", delay: 0 },
             { text: "ใส่ชื่อตัวแปร และใส่ค่าให้กับตัวแปร", delay: 0 }
         ];
         
-        // สร้าง Text object
-        const dialogText = this.add.text(x + 100, y + 30, '', {
-            fontSize: '15px',
-            fontFamily: 'Arial',
-            color: '#ffffff',
-            wordWrap: { width: 560 }
-        });
-
-        // เก็บ index ของข้อความปัจจุบัน
-        let currentMessageIndex = 0;
-        let typingInterval = null;
-        
-        // ฟังก์ชันสำหรับแสดงข้อความแบบอนิเมชั่นการพิมพ์
-        const showTypingMessage = (text) => {
-            // เคลียร์ interval ก่อนหน้า (ถ้ามี)
-            if (typingInterval) {
-                clearInterval(typingInterval);
-            }
-            
-            let currentText = '';
-            let charIndex = 0;
-            
-            typingInterval = setInterval(() => {
-                if (charIndex < text.length) {
-                    currentText += text[charIndex];
-                    dialogText.setText(currentText);
-                    charIndex++;
-                } else {
-                    clearInterval(typingInterval);
-                    typingInterval = null;
-                }
-            }, 50); // ความเร็วในการพิมพ์
-        };
-        
-        // แสดงข้อความแรก
-        showTypingMessage(messages[0].text);
-        
-        // สร้างเอฟเฟกต์เบลอสำหรับส่วนอื่นๆ ของเกม
-        const blurEffect = this.add.graphics();
-        blurEffect.fillStyle(0x000000, 0.5);
-        blurEffect.fillRect(0, 0, GAME_CONFIG.width, GAME_CONFIG.height);
-        
-        // ทำให้กล่องข้อความและข้อความอยู่ด้านบนสุด
-        dialogBox.setDepth(1000);
-        dialogText.setDepth(1001);
-        blurEffect.setDepth(999);
-        
-        // ฟังก์ชันสำหรับทำความสะอาด
-        const cleanup = () => {
-            if (typingInterval) {
-                clearInterval(typingInterval);
-            }
-            dialogBox.destroy();
-            dialogText.destroy();
-            blurEffect.destroy();
-            if (pilot && pilot.destroy) {
-                pilot.destroy();
-            }
-            this.input.off('pointerdown', handleClick);
-        };
-        
-        // ฟังก์ชันจัดการการคลิก
-        const handleClick = () => {
-            currentMessageIndex++;
-            if (currentMessageIndex < messages.length) {
-                showTypingMessage(messages[currentMessageIndex].text);
-            } else {
-                cleanup();
-            }
-        };
-        
-        // เพิ่ม event listener สำหรับการคลิกที่ไหนก็ได้ในเกม
-        this.input.on('pointerdown', handleClick);
-        
-        // เพิ่ม timeout เพื่อทำความสะอาดอัตโนมัติหลังจาก 10 วินาที
-        this.time.delayedCall(10000, cleanup);
+        this.createDialog(welcomeMessages);
     }
            
         // เช็คว่าเป็นด่านไหนและสร้าง elements ตามด่านนั้น
@@ -192,7 +202,6 @@ class GameScene extends Phaser.Scene {
             .setInteractive({ useHandCursor: true })
             .setDepth(1); // ตั้งค่า depth ให้อยู่ด้านบน
 
-        // สร้างข้อความบนกระดาษ
         this.paperText = this.add.text(paperStartX, paperStartY, 'chest = "เปิดกล่อง"', {
             font: '20px Arial',
             fill: '#000000',
@@ -204,7 +213,6 @@ class GameScene extends Phaser.Scene {
 
         let isExpanded = false;
 
-        // เพิ่ม event listeners สำหรับการโต้ตอบ
         this.paper.on('pointerover', () => {
             document.body.style.cursor = 'pointer';
             if (!isExpanded) {
@@ -231,7 +239,6 @@ class GameScene extends Phaser.Scene {
 
         this.paper.on('pointerdown', () => {
             if (!isExpanded) {
-                // แอนิเมชันการขยายกระดาษ
                 this.tweens.add({
                     targets: this.paper,
                     x: paperExpandedX,
@@ -241,12 +248,10 @@ class GameScene extends Phaser.Scene {
                     ease: 'Power2'
                 });
 
-                // แสดงข้อความรหัสผ่าน
                 this.paperText.setVisible(true);
                 this.paperText.x = paperExpandedX;
                 this.paperText.y = paperExpandedY;
                 
-                // แอนิเมชันการแสดงข้อความ
                 this.tweens.add({
                     targets: this.paperText,
                     alpha: 1,
@@ -274,7 +279,6 @@ class GameScene extends Phaser.Scene {
                 );
                 
                 if (distance > 50) {
-                    // แอนิเมชันการย่อกระดาษ
                     this.tweens.add({
                         targets: this.paper,
                         x: paperStartX,
@@ -313,7 +317,6 @@ class GameScene extends Phaser.Scene {
             .setScale(0.5);
 
         
-        // กำหนดขนาดเริ่มต้นของประตูตอนเปิด
         this.openchestScale = 0.8;  // คุณสามารถปรับค่านี้ได้ตามต้องการ
     }
 
@@ -327,24 +330,20 @@ class GameScene extends Phaser.Scene {
     update() {
         if (!gameState.isRunning) return;
 
-        // ตรวจสอบรหัสผ่าน
         if (gameState.variables.chest === "เปิดกล่อง" && !this.doorOpened) {
             this.doorOpened = true;
             
-            // เปลี่ยนภาพประตูและเล่นแอนิเมชัน
             if (this.player) {
                 // เก็บตำแหน่งประตูเดิม
                 const oldX = this.player.x;
                 const oldY = this.player.y;
                 
-                // ลบประตูเดิม
                 this.player.destroy();
                 
                 // สร้างประตูใหม่ในตำแหน่งเดิม
                 this.player = this.physics.add.sprite(oldX, oldY, "chestopen")
                     .setScale(0.7); // ตั้งขนาดเริ่มต้น
                 
-                // เล่นแอนิเมชันประตูเปิด
                 this.tweens.add({
                     targets: this.player,
                     scaleX: this.openchestScale,
@@ -355,7 +354,6 @@ class GameScene extends Phaser.Scene {
                     repeat: 0,
                     onComplete: () => {
                         logToConsole('ประตูเปิดแล้ว! คุณสามารถไปด่านต่อไปได้');
-                        // ลบกระดาษและข้อความ
                         if (this.paper) {
                             this.paper.destroy();
                         }
@@ -363,10 +361,8 @@ class GameScene extends Phaser.Scene {
                             this.paperText.destroy();
                         }
                         
-                        // เพิ่มด่านที่ผ่านแล้วเข้าไปใน Set
                         gameState.completedLevels.add(gameState.level);
                         
-                        // อัพเดทสีด่านที่เสร็จแล้ว
                         const completedLevel = document.querySelector(`.level-item[data-level="${gameState.level}"]`);
                         if (completedLevel) {
                             completedLevel.style.backgroundColor = '#1a1e2f';
@@ -378,7 +374,6 @@ class GameScene extends Phaser.Scene {
                             }
                         }
 
-                        // เปลี่ยนเครื่องหมายภารกิจจาก ✗ เป็น ✓
                         const missionStatus = document.getElementById('else-checkbox');
                         if (missionStatus) {
                             missionStatus.textContent = '✓';
@@ -387,30 +382,25 @@ class GameScene extends Phaser.Scene {
                             missionStatus.style.transition = 'all 0.3s ease';
                         }
 
-                        // แสดงบทสนทนาขอแสดงความยินดี
                         const dialogBox = this.add.graphics();
                         const x = 90;
-                        const y = 290;
+                        const y = 250;
                         
-                        // วาดกล่องข้อความ
                         dialogBox.fillStyle(0x000000, 0.8);
                         dialogBox.fillRect(x, y, 600, 100);
                         dialogBox.lineStyle(2, 0xffffff);
                         dialogBox.strokeRect(x, y, 600, 100);
 
-                        // เพิ่มรูปนักบิน
                         const pilot = this.add.sprite(x + -20, y + 10, 'thief');
                         pilot.setScale(0.5);
                         pilot.setDepth(1002);
                         
-                        // สร้างข้อความแสดงความยินดี
                         const messages = [
                             { text: "ยินดีด้วย! คุณทำภารกิจสำเร็จแล้ว", delay: 0 },
                             { text: "คุณได้เรียนรู้การใช้งานตัวแปร const แล้ว", delay: 0 },
                             { text: "ไปต่อที่ด่านถัดไปกันเถอะ!", delay: 0 }
                         ];
                         
-                        // สร้าง Text object
                         const dialogText = this.add.text(x + 100, y + 30, '', {
                             fontSize: '15px',
                             fontFamily: 'Arial',
@@ -418,11 +408,9 @@ class GameScene extends Phaser.Scene {
                             wordWrap: { width: 560 }
                         });
 
-                        // เก็บ index ของข้อความปัจจุบัน
                         let currentMessageIndex = 0;
                         let typingInterval = null;
                         
-                        // ฟังก์ชันสำหรับแสดงข้อความแบบอนิเมชั่นการพิมพ์
                         const showTypingMessage = (text) => {
                             if (typingInterval) {
                                 clearInterval(typingInterval);
@@ -443,20 +431,16 @@ class GameScene extends Phaser.Scene {
                             }, 50);
                         };
                         
-                        // แสดงข้อความแรก
                         showTypingMessage(messages[0].text);
                         
-                        // สร้างเอฟเฟกต์เบลอสำหรับส่วนอื่นๆ ของเกม
                         const blurEffect = this.add.graphics();
                         blurEffect.fillStyle(0x000000, 0.5);
                         blurEffect.fillRect(0, 0, GAME_CONFIG.width, GAME_CONFIG.height);
                         
-                        // ทำให้กล่องข้อความและข้อความอยู่ด้านบนสุด
                         dialogBox.setDepth(1000);
                         dialogText.setDepth(1001);
                         blurEffect.setDepth(999);
                         
-                        // ฟังก์ชันสำหรับทำความสะอาด
                         const cleanup = () => {
                             if (typingInterval) {
                                 clearInterval(typingInterval);
@@ -478,10 +462,8 @@ class GameScene extends Phaser.Scene {
                             }
                         };
                         
-                        // เพิ่ม event listener สำหรับการคลิกที่ไหนก็ได้ในเกม
                         this.input.on('pointerdown', handleClick);
                         
-                        // เพิ่ม timeout เพื่อทำความสะอาดอัตโนมัติหลังจาก 10 วินาที
                         this.time.delayedCall(10000, cleanup);
 
                         // ปลดล็อด่านถัดไป
@@ -498,7 +480,6 @@ class GameScene extends Phaser.Scene {
                             if (lockIcon) {
                                 lockIcon.remove();
                             }
-                            // เพิ่ม hover effect สำหรับด่านที่เพิ่งปลดล็อค
                             nextLevel.style.cursor = 'pointer';
                             nextLevel.addEventListener('mouseenter', () => {
                                 nextLevel.style.transform = 'scale(1.02)';
@@ -509,13 +490,11 @@ class GameScene extends Phaser.Scene {
                             });
                         }
                         
-                        // เพิ่มค่า level แต่ไม่เปลี่ยนด่านอัตโนมัติ
                         gameState.level++;
                     }
                 });
             }
         } else if (gameState.variables.chest !== undefined && !this.doorOpened) {
-            // เมื่อรหัสผ่านไม่ถูกต้องและประตูยังไม่เปิด
             this.player.setVelocityX(0);
             this.player.setVelocityY(0);
             
@@ -527,14 +506,12 @@ class GameScene extends Phaser.Scene {
     }
 }
 
-// Initialize game
 function initializeGame() {
     gameState.game = new Phaser.Game(GAME_CONFIG);
     gameState.game.scene.add('GameScene', GameScene);
     gameState.game.scene.start('GameScene');
 }
 
-// Initialize editor
 function initializeEditor() {
     require.config({ paths: { vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.39.0/min/vs" } });
     require(["vs/editor/editor.main"], function () {
@@ -583,7 +560,6 @@ console.log(chest);`,
     });
 }
 
-// Worker management
 function setupWorkerHandlers() {
     if (!gameState.worker) {
         gameState.worker = new Worker('gameWorker.js');
@@ -610,7 +586,6 @@ function setupWorkerHandlers() {
     };
 }
 
-// Utility functions
 function logToConsole(message) {
     console.log('Debug:', message);
     const outputBox = document.getElementById('console-output');
@@ -618,7 +593,6 @@ function logToConsole(message) {
         const logEntry = document.createElement('div');
         logEntry.className = 'console-entry';
         
-        // กำหนดสไตล์ให้กับ logEntry
         logEntry.style.padding = '8px 12px';
         logEntry.style.margin = '4px 0';
         logEntry.style.borderRadius = '4px';
@@ -627,13 +601,11 @@ function logToConsole(message) {
         logEntry.style.lineHeight = '1.4';
         logEntry.style.transition = 'all 0.3s ease';
         
-        // ตรวจสอบประเภทของข้อความและกำหนดสไตล์ที่เหมาะสม
         if (message.includes('ชนกับภูเขา')) {
             logEntry.style.backgroundColor = 'rgba(255, 0, 0, 0.1)';
             logEntry.style.borderLeft = '4px solid #ff0000';
             logEntry.style.color = '#ff3333';
             
-            // เพิ่มไอคอนเตือน
             const icon = document.createElement('span');
             icon.innerHTML = '⚠️ ';
             icon.style.marginRight = '8px';
@@ -643,7 +615,6 @@ function logToConsole(message) {
             logEntry.style.borderLeft = '4px solid #00cc00';
             logEntry.style.color = '#00cc00';
             
-            // เพิ่มไอคอนเลเซอร์
             const icon = document.createElement('span');
             icon.innerHTML = '✅ ';
             icon.style.marginRight = '8px';
@@ -654,7 +625,6 @@ function logToConsole(message) {
             logEntry.style.borderLeft = '4px solid #00cc00';
             logEntry.style.color = '#00cc00';
             
-            // เพิ่มไอคอนเลเซอร์
             const icon = document.createElement('span');
             icon.innerHTML = '✅ ';
             icon.style.marginRight = '8px';
@@ -666,7 +636,6 @@ function logToConsole(message) {
             logEntry.style.borderLeft = '4px solid #0066cc';
             logEntry.style.color = '#0066cc';
             
-            // เพิ่มไอคอนภูเขา
             const icon = document.createElement('span');
             icon.innerHTML = '⛰️ ';
             icon.style.marginRight = '8px';
@@ -676,7 +645,6 @@ function logToConsole(message) {
             logEntry.style.borderLeft = '4px solid #cc0000';
             logEntry.style.color = '#cc0000';
             
-            // เพิ่มไอคอนข้อผิดพลาด
             const icon = document.createElement('span');
             icon.innerHTML = '❌ ';
             icon.style.marginRight = '8px';
@@ -687,21 +655,17 @@ function logToConsole(message) {
             logEntry.style.color = '#fefefe';
         }
         
-        // เพิ่มข้อความ
         const textSpan = document.createElement('span');
         textSpan.textContent = message;
         logEntry.appendChild(textSpan);
         
-        // เพิ่มเอฟเฟคเมื่อเพิ่มข้อความใหม่
         logEntry.style.opacity = '0';
         logEntry.style.transform = 'translateY(-10px)';
         
         outputBox.appendChild(logEntry);
         
-        // เลื่อนไปที่ข้อความล่าสุด
         outputBox.scrollTop = outputBox.scrollHeight;
         
-        // เอฟเฟคการแสดงผล
         setTimeout(() => {
             logEntry.style.opacity = '1';
             logEntry.style.transform = 'translateY(0)';
@@ -802,7 +766,6 @@ function playPause() {
     }
 }
 
-// Initialize everything
 initializeGame();
 initializeEditor();
 setupWorkerHandlers();

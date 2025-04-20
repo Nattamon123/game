@@ -9,7 +9,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.39.0/min/vs/loader.min.js"></script>
 </head>
 <body>
-    <!-- Top Menu Bar -->
     <nav class="top-menu">
         <div class="top-menu-left">
             <a href="#" class="logo">House of Thief 2</a>
@@ -17,7 +16,6 @@
         
     </nav>
 
-    <!-- Mission Status Display -->
     <div id="mission-status-container">
         <h3>ภารกิจของคุณ</h3>
         <div id="if-condition">
@@ -25,7 +23,7 @@
         </div>
         <div id="else-condition">
             <span id="else-checkbox" class="status-icon">✗</span>
-            <span>ใส่string เพื่อเปิดกล่อง โดยกำหนดค่าให้กับตัวแปร</span>
+            <span>ใส่ค่าstring เพื่อเปิดกล่อง </span>
         </div>
     </div>
 
@@ -133,7 +131,7 @@
                             <p>ผู้เล่นต้องสร้างตัวแปร และกำหนดค่าให้กับตัวแปร</p>
                             <p>สามารถดูคำใบ้ได้ที่กระดาษในเกม</p>
                             <div class="code-block">
-                                <code>ค่าคงที่ passcode = "เปิดกล่อง"</code>
+                                <code>ค่าคงที่ chest = "เปิดกล่อง"</code>
                             </div>
                             <p>เมื่อใส่ข้อความถูกต้อง ประตูจะเปิด</p>
                         </div>
@@ -158,12 +156,12 @@
                     <div class="doc-card">
                         <h3 class="doc-subtitle">🧾 ข้อมูลอินพุตในแต่ละรอบ</h3>
                         <div class="doc-text">
-                            <p>console.log(passcode)</p>
-                            <p>let passcode = "ข้อความที่ต้องใส่"</p>
+                            <p>console.log(chest)</p>
+                            <p>let chest = "ข้อความที่ต้องใส่"</p>
                             <div class="example-block">
                                 <h4>ตัวอย่างอินพุต:</h4>
                                 <pre class="code-example"><code>
-let,const,var passcode = "ข้อความที่ต้องใส่"
+let,const,var chest = "ข้อความที่ต้องใส่"
 
 
 </code></pre>
@@ -174,10 +172,10 @@ let,const,var passcode = "ข้อความที่ต้องใส่"
                     <div class="doc-card">
                         <h3 class="doc-subtitle">🖥️ คำสั่งเอาต์พุตในแต่ละรอบ</h3>
                         <div class="doc-text">
-                            <p>ส่งออกค่าของตัวแปร passcode</p>
+                            <p>ส่งออกค่าของตัวแปร chest</p>
                             <div class="example-block">
                                 <h4>ตัวอย่างการใช้งาน:</h4>
-                                <pre class="code-example"><code class="language-javascript">let passcode = "ข้อความที่ต้องใส่"</code></pre>
+                                <pre class="code-example"><code class="language-javascript">let chest = "ข้อความที่ต้องใส่"</code></pre>
                             </div>
                         </div>
                     </div>
@@ -186,47 +184,45 @@ let,const,var passcode = "ข้อความที่ต้องใส่"
         </div>
     </div>
 
-    <!-- Console Output -->
     <div id="console-container">
         <div id="console-output"></div>
     </div>
 
     <div id="editor"></div>
     
-    <!-- Controls Section -->
     <div class="editor-controls">
         <div class="level-selector">
             <div class="level-item" data-level="1" onclick="window.location.href='../game.html'">
                 <div class="level-info">
                     <h3>ด่านที่ 1</h3>
-                    <p>ภารกิจอัลฟ่า: ยิงแม่นคำสั่งเดียว</p>
+                    <p>ภารกิจปริศนา: การใช้งานตัวแปร</p>
                 </div>
                 <div class="level-status unlocked">พร้อมเล่น</div>
             </div>
             <div class="level-item active" data-level="2">
                 <div class="level-info">
                     <h3>ด่านที่ 2</h3>
-                    <p>ภารกิจเบต้า: พลังแห่งลูป</p>
+                    <p>ภารกิจสมบัติ: การใช้ String</p>
                 </div>
                 <div class="level-status unlocked">กำลังเล่น</div>
             </div>
             <div class="level-item" data-level="3" onclick="window.location.href='../level3/game3.html'">
                 <div class="level-info">
                     <h3>ด่านที่ 3</h3>
-                    <p>ภารกิจรัซ: ลูปที่มีเงื่อนไข</p>
+                    <p>ภารกิจห้องสมุด: การใช้ Array</p>
                 </div>
                 <div class="level-status unlocked">พร้อมเล่น</div>
             </div>
             <div class="level-item" data-level="4" onclick="window.location.href='../level4/game4.html'">
                 <div class="level-info">
                     <h3>ด่านที่ 4</h3>
-                    <p>ภารกิจดับเบิล: ลูปที่เป็นเลขคู่</p>
+                    <p>ภารกิจลับ</p>
                 </div>
                 <div class="level-status unlocked">พร้อมเล่น</div>
             </div>
         </div>
     </div>
-    <button class="play-testcase-button" onclick="runTestCase()">▶ PLAY TESTCASE</button>
+    <button class="play-testcase-button" onclick="runTestCase()">runCode</button>
 
     <script src="game2.js"></script>
     <script src="gameWorker.js"></script>

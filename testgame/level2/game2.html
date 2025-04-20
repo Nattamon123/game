@@ -4,12 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Code Game</title>
-    <link rel="stylesheet" href="game2.css">
+    <link rel="stylesheet" href="../game.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.55.2/phaser.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.39.0/min/vs/loader.min.js"></script>
 </head>
 <body>
-    <!-- Top Menu Bar -->
     <nav class="top-menu">
         <div class="top-menu-left">
             <a href="../game.html" class="logo">← กลับสู่หน้าหลัก</a>
@@ -27,7 +26,6 @@
         </div>
     </nav>
 
-    <!-- Mission Status Display -->
     <div id="mission-status-container">
         <h3>ภารกิจของคุณ</h3>
         <div id="if-condition">
@@ -132,10 +130,6 @@
                     <div class="progress-bar-fill"></div>
                 </div>
             </div>
-            <!-- <div class="frame-controls">
-                <div class="controls-right">
-                    <button>⛶</button>
-                </div> -->
             </div>
             <div class="doc-section">
                 <h2 class="doc-title">📚 อธิบายเกม</h2>
@@ -208,24 +202,22 @@
         </div>
     </div>
 
-    <!-- Console Output -->
     <div id="console-container">
         <div id="console-output"></div>
     </div>
 
     <div id="editor"></div>
     
-    <!-- Controls Section -->
     <div class="editor-controls">
         <div class="level-selector">
-            <div class="level-item active" data-level="1" onclick="window.location.href='../game.html'">
+            <div class="level-item" data-level="1" onclick="window.location.href='../game.html'">
                 <div class="level-info">
                     <h3>ด่านที่ 1</h3>
                     <p>ภารกิจอัลฟ่า: ยิงแม่นคำสั่งเดียว</p>
                 </div>
                 <div class="level-status unlocked">พร้อมเล่น</div>
             </div>
-            <div class="level-item" data-level="2">
+            <div class="level-item active" data-level="2">
                 <div class="level-info">
                     <h3>ด่านที่ 2</h3>
                     <p>ภารกิจเบต้า: พลังแห่งลูป</p>
@@ -253,6 +245,6 @@
 
     <script src="phaser.min.js"></script>
     <script src="game2.js"></script>
-    <script src="gameWorker.js"></script>
+    <script src="gameWorker2.js"></script>
 </body>
 </html>

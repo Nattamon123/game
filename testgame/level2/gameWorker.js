@@ -6,26 +6,69 @@ let playerX = 0;
 let playerY = 0;
 let treasureX = 0;
 let treasureY = 0;
+let directionQueue = [];
+let isProcessing = false;
+
+function processNextDirection() {
+    if (directionQueue.length > 0 && !isProcessing) {
+        isProcessing = true;
+        const direction = directionQueue.shift();
+        self.postMessage({ type: 'log', message: direction });
+        setTimeout(() => {
+            isProcessing = false;
+            processNextDirection();
+        }, 500);
+    }
+}
 
 // Message Handler
 self.onmessage = function(e) {
     const { type, code, playerX: px, playerY: py, treasureX: tx, treasureY: ty } = e.data;
     
-    switch (type) {
-        case 'positions':
-            playerX = px;
-            playerY = py;
-            treasureX = tx;
-            treasureY = ty;
-            break;
-        case 'run':
-            handleRun(code);
-            break;
-        default:
-            postMessage({ 
-                type: 'error', 
-                error: 'Invalid message type' 
+    if (type === 'positions') {
+        playerX = px;
+        playerY = py;
+        treasureX = tx;
+        treasureY = ty;
+    } else if (type === 'run') {
+        const customConsole = {
+            log: function(direction) {
+                if (typeof direction === 'string') {
+                    direction = direction.toLowerCase();
+                    if (direction === 'east' || direction === 'west' || 
+                        direction === 'north' || direction === 'south') {
+                        directionQueue.push(direction);
+                        if (!isProcessing) {
+                            processNextDirection();
+                        }
+                    }
+                }
+            }
+        };
+
+        try {
+            const processedCode = code.replace(/console\.log\((.*?)\)/g, (match, content) => {
+                if (content === 'west' || content === 'east' || content === 'north' || content === 'south') {
+                    return `customConsole.log("${content}")`;
+                }
+                return `customConsole.log(${content})`;
             });
+
+            const fullCode = `
+                const player = { x: ${playerX}, y: ${playerY} };
+                const treasure = { x: ${treasureX}, y: ${treasureY} };
+                ${processedCode}
+            `;
+            
+            eval(fullCode);
+        } catch (error) {
+            console.error('Error executing code:', error);
+        }
+    } else {
+        postMessage({ 
+            type: 'error', 
+            error: 'Invalid message type' 
+        });
     }
 };
 
@@ -54,22 +97,23 @@ function handleRun(code) {
         };
 
         // แปลง console.log(ทิศทาง) ให้เป็น console.log("ทิศทาง")
-        const processedCode = code.replace(/console\.log\(([^)]+)\)/g, (match, direction) => {
-            // ตรวจสอบว่าทิศทางเป็นตัวแปรหรือไม่
-            if (direction.trim() === 'east' || direction.trim() === 'west' || 
-                direction.trim() === 'north' || direction.trim() === 'south' ||
-                direction.trim() === 'right' || direction.trim() === 'left' ||
-                direction.trim() === 'up' || direction.trim() === 'down') {
-                return `console.log("${direction.trim()}")`;
-            }
-            return match; // ถ้าไม่ใช่ทิศทางที่กำหนดไว้ ให้ใช้โค้ดเดิม
+        const processedCode = code.replace(/console\.log\((.*?)\)/g, (match, content) => {
+            return `customConsole.log(${content})`;
         });
 
         // รวมโค้ดทั้งหมดและรัน
         const fullCode = `
-            const console = {
+            const customConsole = {
                 log: function(direction) {
-                    self.postMessage({ type: 'log', message: String(direction) });
+                    if (typeof direction === 'string') {
+                        direction = direction.toLowerCase();
+                        if (direction === 'east' || direction === 'west') {
+                            if (lastDirection !== direction) {
+                                self.postMessage({ type: 'log', message: direction });
+                                lastDirection = direction;
+                            }
+                        }
+                    }
                 }
             };
             const player = ${JSON.stringify(gameObjects.player)};

@@ -50,22 +50,49 @@ class GameScene extends Phaser.Scene {
     }
 
     preload() {
-        this.load.image("bg", "./image/ChatGPT Image Apr 20, 2025, 01_27_07 PM.png");
+        this.load.image("bg", "./image/library-interior-empty-room-reading-with-books-wooden-shelves_33099-1722.avif");
         this.load.image("obstacle", "./image/rock.png");
-        this.load.image("chestopen", "./image/chestopen.png");
+        // this.load.image("chestopen", "./image/chestopen.png");
         this.load.image("thief", "./image/thief-removebg-preview.png");
-        this.load.image("chest", "./image/chestclose.png");
+        // this.load.image("chest", "./image/chestclose.png");
+        this.load.image("shelf", "./image/bookseee.jpg");
         this.load.image("paper", "./image/paperrrr-removebg-preview.png");
+        this.load.image("history", "./image/q27h86dkjhmQ9Hvvx1S-o.jpg");
+        this.load.image("science", "./image/pid-26957.jpg");
+        this.load.image("math", "./image/displaypics.webp");
     }
-
     create() {
         this.createBackground();
-        this.createPlayer();
-        this.createpaper();
-        // เช็คและล็อคด่านที่ยังไม่ถึง
+        this.createShelf();
+        
+        // สร้างหนังสือและเก็บ reference
+        this.historyBook = this.add.image(270, 200, "history").setScale(0.11);
+        this.scienceBook = this.add.image(270, 300, "science").setScale(0.1);
+        this.mathBook = this.add.image(270, 100, "math").setScale(0.05);
+        
+        // สร้างข้อความบนกระดาษ
+        
+        // สร้างข้อความบอกประเภทหนังสือ
+        this.createFloatingText();
+        
+        // กำหนดค่าเริ่มต้น
+        this.booksArranged = false;
+        this.dialogueActive = false;
+        this.currentMessageIndex = 0;
+        this.typingInterval = null;
+
+        // แสดงข้อความต้อนรับ
+        this.showWelcomeDialogue();
+    }
+
+    showWelcomeDialogue() {
+        if (this.dialogueActive) return;
+        this.dialogueActive = true;
+        this.currentMessageIndex = 0;
+        
         const dialogBox = this.add.graphics();
         const x = 90;
-        const y = 290;
+        const y = 250;
         
         // วาดกล่องข้อความ
         dialogBox.fillStyle(0x000000, 0.8);
@@ -73,92 +100,81 @@ class GameScene extends Phaser.Scene {
         dialogBox.lineStyle(2, 0xffffff);
         dialogBox.strokeRect(x, y, 600, 100);
 
-        // ประกาศตัวแปร pilot ในระดับที่สามารถเข้าถึงได้จากทุกที่ใน create()
-        let pilot = null;
-        
         // เพิ่มรูปนักบิน
-        try {
-            pilot = this.add.sprite(x + -20, y + 10, 'thief');
-            pilot.setScale(0.5);
-            pilot.setDepth(1002); // ให้แน่ใจว่าอยู่ด้านบนสุด
-            console.log('Pilot sprite created successfully');
-        } catch (error) {
-            console.error('Error creating pilot sprite:', error);
-        }
+        const pilot = this.add.sprite(x + -20, y + 10, 'thief');
+        pilot.setScale(0.5);
+        pilot.setDepth(1002);
         
         // สร้างข้อความ
         const messages = [
-            { text: "ยินดีต้อนรับสู่ด่านแห่งตัวแปร String", delay: 0 },
-            { text: "ใช้คำสั่ง let,const เพื่อสร้างตัวแปร", delay: 0 },
-            { text: "ใส่ชื่อตัวแปร และใส่ค่าให้กับตัวแปร", delay: 0 }
+            { text: "ยินดีต้อนรับสู่ด่านแห่ง Array", delay: 0 },
+            { text: "เรียงลำดับหนังสือให้ถูกต้องตามชั้น:", delay: 0 },
+            { text: "ชั้นที่ 1: หนังสือประวัติศาสตร์", delay: 0 },
+            { text: "ชั้นที่ 2: หนังสือวิทยาศาสตร์", delay: 0 },
+            { text: "ชั้นที่ 3: หนังสือคณิตศาสตร์", delay: 0 }
         ];
         
         // สร้าง Text object
-        const dialogText = this.add.text(x + 100, y + 30, '', {
+        const dialogText = this.add.text(x + 120, y + 30, '', {
             fontSize: '15px',
             fontFamily: 'Arial',
             color: '#ffffff',
             wordWrap: { width: 560 }
         });
 
-        // เก็บ index ของข้อความปัจจุบัน
-        let currentMessageIndex = 0;
-        let typingInterval = null;
-        
-        // ฟังก์ชันสำหรับแสดงข้อความแบบอนิเมชั่นการพิมพ์
-        const showTypingMessage = (text) => {
-            // เคลียร์ interval ก่อนหน้า (ถ้ามี)
-            if (typingInterval) {
-                clearInterval(typingInterval);
-            }
-            
-            let currentText = '';
-            let charIndex = 0;
-            
-            typingInterval = setInterval(() => {
-                if (charIndex < text.length) {
-                    currentText += text[charIndex];
-                    dialogText.setText(currentText);
-                    charIndex++;
-                } else {
-                    clearInterval(typingInterval);
-                    typingInterval = null;
-                }
-            }, 50); // ความเร็วในการพิมพ์
-        };
-        
-        // แสดงข้อความแรก
-        showTypingMessage(messages[0].text);
+        // ทำให้กล่องข้อความและข้อความอยู่ด้านบนสุด
+        dialogBox.setDepth(1000);
+        dialogText.setDepth(1001);
         
         // สร้างเอฟเฟกต์เบลอสำหรับส่วนอื่นๆ ของเกม
         const blurEffect = this.add.graphics();
         blurEffect.fillStyle(0x000000, 0.5);
         blurEffect.fillRect(0, 0, GAME_CONFIG.width, GAME_CONFIG.height);
-        
-        // ทำให้กล่องข้อความและข้อความอยู่ด้านบนสุด
-        dialogBox.setDepth(1000);
-        dialogText.setDepth(1001);
         blurEffect.setDepth(999);
+        
+        // ฟังก์ชันสำหรับแสดงข้อความแบบอนิเมชั่นการพิมพ์
+        const showTypingMessage = (text) => {
+            if (this.typingInterval) {
+                clearInterval(this.typingInterval);
+            }
+            
+            let currentText = '';
+            let charIndex = 0;
+            
+            this.typingInterval = setInterval(() => {
+                if (charIndex < text.length) {
+                    currentText += text[charIndex];
+                    dialogText.setText(currentText);
+                    charIndex++;
+                } else {
+                    clearInterval(this.typingInterval);
+                    this.typingInterval = null;
+                }
+            }, 50);
+        };
+        
+        // แสดงข้อความแรก
+        showTypingMessage(messages[0].text);
         
         // ฟังก์ชันสำหรับทำความสะอาด
         const cleanup = () => {
-            if (typingInterval) {
-                clearInterval(typingInterval);
+            if (this.typingInterval) {
+                clearInterval(this.typingInterval);
+                this.typingInterval = null;
             }
             dialogBox.destroy();
             dialogText.destroy();
             blurEffect.destroy();
-            if (pilot && pilot.destroy) {
-                pilot.destroy();
-            }
+            pilot.destroy();
             this.input.off('pointerdown', handleClick);
+            this.dialogueActive = false;
         };
         
         // ฟังก์ชันจัดการการคลิก
         const handleClick = () => {
-            currentMessageIndex++;
-            if (currentMessageIndex < messages.length) {
-                showTypingMessage(messages[currentMessageIndex].text);
+            this.currentMessageIndex++;
+            if (this.currentMessageIndex < messages.length) {
+                showTypingMessage(messages[this.currentMessageIndex].text);
             } else {
                 cleanup();
             }
@@ -170,141 +186,187 @@ class GameScene extends Phaser.Scene {
         // เพิ่ม timeout เพื่อทำความสะอาดอัตโนมัติหลังจาก 10 วินาที
         this.time.delayedCall(10000, cleanup);
     }
-           
-        // เช็คว่าเป็นด่านไหนและสร้าง elements ตามด่านนั้น
+
+    showSuccessDialogue() {
+        if (this.dialogueActive) return;
+        this.dialogueActive = true;
+        this.currentMessageIndex = 0;
+        
+        const dialogBox = this.add.graphics();
+        const x = 90;
+        const y = 250;
+        
+        // วาดกล่องข้อความ
+        dialogBox.fillStyle(0x000000, 0.8);
+        dialogBox.fillRect(x, y, 600, 100);
+        dialogBox.lineStyle(2, 0xffffff);
+        dialogBox.strokeRect(x, y, 600, 100);
+
+        // เพิ่มรูปนักบิน
+        const pilot = this.add.sprite(x + -20, y + 10, 'thief');
+        pilot.setScale(0.5);
+        pilot.setDepth(1002);
+        
+        // สร้างข้อความแสดงความยินดี
+        const messages = [
+            { text: "ยินดีด้วย! คุณเรียงลำดับหนังสือถูกต้องแล้ว", delay: 0 },
+            { text: "คุณได้เรียนรู้การใช้งาน Array แล้ว", delay: 0 },
+            { text: "ไปต่อที่ด่านถัดไปกันเถอะ!", delay: 0 }
+        ];
+        
+        // สร้าง Text object
+        const dialogText = this.add.text(x + 120, y + 30, '', {
+            fontSize: '15px',
+            fontFamily: 'Arial',
+            color: '#ffffff',
+            wordWrap: { width: 560 }
+        });
+
+        // ทำให้กล่องข้อความและข้อความอยู่ด้านบนสุด
+        dialogBox.setDepth(1000);
+        dialogText.setDepth(1001);
+        
+        // สร้างเอฟเฟกต์เบลอสำหรับส่วนอื่นๆ ของเกม
+        const blurEffect = this.add.graphics();
+        blurEffect.fillStyle(0x000000, 0.5);
+        blurEffect.fillRect(0, 0, GAME_CONFIG.width, GAME_CONFIG.height);
+        blurEffect.setDepth(999);
+        
+        // ฟังก์ชันสำหรับแสดงข้อความแบบอนิเมชั่นการพิมพ์
+        const showTypingMessage = (text) => {
+            if (this.typingInterval) {
+                clearInterval(this.typingInterval);
+            }
+            
+            let currentText = '';
+            let charIndex = 0;
+            
+            this.typingInterval = setInterval(() => {
+                if (charIndex < text.length) {
+                    currentText += text[charIndex];
+                    dialogText.setText(currentText);
+                    charIndex++;
+                } else {
+                    clearInterval(this.typingInterval);
+                    this.typingInterval = null;
+                }
+            }, 50);
+        };
+        
+        // แสดงข้อความแรก
+        showTypingMessage(messages[0].text);
+        
+        // ฟังก์ชันสำหรับทำความสะอาด
+        const cleanup = () => {
+            if (this.typingInterval) {
+                clearInterval(this.typingInterval);
+                this.typingInterval = null;
+            }
+            dialogBox.destroy();
+            dialogText.destroy();
+            blurEffect.destroy();
+            pilot.destroy();
+            this.input.off('pointerdown', handleClick);
+            this.dialogueActive = false;
+            
+            // ปลดล็อด่านถัดไป
+            const nextLevel = document.querySelector(`.level-item[data-level="${gameState.level + 1}"]`);
+            if (nextLevel) {
+                nextLevel.classList.remove('locked');
+                const playButton = nextLevel.querySelector('.play-button');
+                if (playButton) {
+                    playButton.disabled = false;
+                    playButton.style.opacity = '1';
+                    playButton.style.cursor = 'pointer';
+                }
+                const lockIcon = nextLevel.querySelector('.lock-icon');
+                if (lockIcon) {
+                    lockIcon.remove();
+                }
+                // เพิ่ม hover effect สำหรับด่านที่เพิ่งปลดล็อค
+                nextLevel.style.cursor = 'pointer';
+                nextLevel.addEventListener('mouseenter', () => {
+                    nextLevel.style.transform = 'scale(1.02)';
+                    nextLevel.style.transition = 'transform 0.2s';
+                });
+                nextLevel.addEventListener('mouseleave', () => {
+                    nextLevel.style.transform = 'scale(1)';
+                });
+            }
+            
+            // เพิ่มค่า level แต่ไม่เปลี่ยนด่านอัตโนมัติ
+            gameState.level++;
+        };
+        
+        // ฟังก์ชันจัดการการคลิก
+        const handleClick = () => {
+            this.currentMessageIndex++;
+            if (this.currentMessageIndex < messages.length) {
+                showTypingMessage(messages[this.currentMessageIndex].text);
+            } else {
+                cleanup();
+            }
+        };
+        
+        // เพิ่ม event listener สำหรับการคลิกที่ไหนก็ได้ในเกม
+        this.input.on('pointerdown', handleClick);
+        
+        // เพิ่ม timeout เพื่อทำความสะอาดอัตโนมัติหลังจาก 10 วินาที
+        this.time.delayedCall(10000, cleanup);
+    }
+
+    createMath() {
+        const math = this.add.image(270, 100, "math");
+        math.setScale(0.05);
+    }
+    createFloatingText() {
+        // กำหนดตำแหน่งและข้อความ
+        const texts = [
+            { text: 'ชั้นที่ 1: หนังสือประวัติศาสตร์', x: 370, y: 100 },
+            { text: 'ชั้นที่ 2: หนังสือวิทยาศาสตร์', x: 370, y: 190 },
+            { text: 'ชั้นที่ 3: หนังสือคณิตศาสตร์', x: 370, y: 290 }
+        ];
+
+        // สร้างตัวหนังสือแต่ละตัว
+        texts.forEach((item, index) => {
+            // สร้างข้อความ
+            const text = this.add.text(item.x, item.y, item.text, {
+                fontFamily: 'Arial',
+                fontSize: '15px',
+                color: '#ffffff',
+                stroke: '#000000',
+                strokeThickness: 4,
+                shadow: {
+                    offsetX: 2,
+                    offsetY: 2,
+                    color: '#000',
+                    blur: 2,
+                    stroke: true,
+                    fill: true
+                }
+            }).setOrigin(0.2);
+        });
+    }
+        
+    createHistory() {
+        const history = this.add.image(270, 200, "history");
+        history.setScale(0.11);
+    }
+
+    createScience() {
+        const science = this.add.image(270, 300, "science");
+        science.setScale(0.1);
+    }
+
     createBackground() {
         const bg = this.add.image(350, 200, "bg");
         bg.setDisplaySize(800, 600);
     }
-
-    createpaper() {
-        // กำหนดตำแหน่งเริ่มต้นของกระดาษ
-        const paperStartX = 500;
-        const paperStartY = 100;
-        const paperStartScale = 0.2;
-        const paperExpandedScale = 0.8;
-        const paperExpandedX = 300;
-        const paperExpandedY = 200;
-
-        // สร้างภาพกระดาษ
-        this.paper = this.add.image(paperStartX, paperStartY, "paper")
-            .setScale(paperStartScale)
-            .setInteractive({ useHandCursor: true })
-            .setDepth(1); // ตั้งค่า depth ให้อยู่ด้านบน
-
-        // สร้างข้อความบนกระดาษ
-        this.paperText = this.add.text(paperStartX, paperStartY, 'chest = "เปิดกล่อง"', {
-            font: '20px Arial',
-            fill: '#000000',
-            align: 'center'
-        })
-        .setOrigin(0.5)
-        .setVisible(false)
-        .setDepth(2); // ตั้งค่า depth ให้อยู่ด้านบนสุด
-
-        let isExpanded = false;
-
-        // เพิ่ม event listeners สำหรับการโต้ตอบ
-        this.paper.on('pointerover', () => {
-            document.body.style.cursor = 'pointer';
-            if (!isExpanded) {
-                this.tweens.add({
-                    targets: this.paper,
-                    scale: paperStartScale * 1.1,
-                    duration: 200,
-                    ease: 'Power2'
-                });
-            }
-        });
-
-        this.paper.on('pointerout', () => {
-            document.body.style.cursor = 'default';
-            if (!isExpanded) {
-                this.tweens.add({
-                    targets: this.paper,
-                    scale: paperStartScale,
-                    duration: 200,
-                    ease: 'Power2'
-                });
-            }
-        });
-
-        this.paper.on('pointerdown', () => {
-            if (!isExpanded) {
-                // แอนิเมชันการขยายกระดาษ
-                this.tweens.add({
-                    targets: this.paper,
-                    x: paperExpandedX,
-                    y: paperExpandedY,
-                    scale: paperExpandedScale,
-                    duration: 500,
-                    ease: 'Power2'
-                });
-
-                // แสดงข้อความรหัสผ่าน
-                this.paperText.setVisible(true);
-                this.paperText.x = paperExpandedX;
-                this.paperText.y = paperExpandedY;
-                
-                // แอนิเมชันการแสดงข้อความ
-                this.tweens.add({
-                    targets: this.paperText,
-                    alpha: 1,
-                    scale: 1.2,
-                    duration: 500,
-                    ease: 'Power2',
-                    onComplete: () => {
-                        this.tweens.add({
-                            targets: this.paperText,
-                            scale: 1,
-                            duration: 200,
-                            ease: 'Power2'
-                        });
-                    }
-                });
-                isExpanded = true;
-            }
-        });
-
-        this.input.on('pointerdown', (pointer) => {
-            if (isExpanded) {
-                const distance = Phaser.Math.Distance.Between(
-                    pointer.x, pointer.y,
-                    this.paper.x, this.paper.y
-                );
-                
-                if (distance > 50) {
-                    // แอนิเมชันการย่อกระดาษ
-                    this.tweens.add({
-                        targets: this.paper,
-                        x: paperStartX,
-                        y: paperStartY,
-                        scale: paperStartScale,
-                        duration: 500,
-                        ease: 'Power2'
-                    });
-
-                    // แอนิเมชันการซ่อนข้อความที่เนียนขึ้น
-                    this.tweens.add({
-                        targets: this.paperText,
-                        alpha: 0,
-                        scale: 0.8,
-                        y: paperExpandedY + 20,
-                        duration: 100,
-                        ease: 'Power2',
-                        onComplete: () => {
-                            this.paperText.setVisible(false);
-                            this.paperText.x = paperStartX;
-                            this.paperText.y = paperStartY;
-                            this.paperText.alpha = 1;
-                            this.paperText.scale = 1;
-                        }
-                    });
-                    isExpanded = false;
-                }
-            }
-        });
+    createShelf() {
+        const shelf = this.add.image(330, 200, "shelf");
+        shelf.setScale(0.7);
     }
+   
     
 
     createPlayer() {
@@ -327,202 +389,60 @@ class GameScene extends Phaser.Scene {
     update() {
         if (!gameState.isRunning) return;
 
-        // ตรวจสอบรหัสผ่าน
-        if (gameState.variables.chest === "เปิดกล่อง" && !this.doorOpened) {
-            this.doorOpened = true;
+        // ตรวจสอบการเรียงลำดับหนังสือ
+        if (gameState.variables.books && gameState.variables.books.length === 3 && !this.booksArranged) {
+            const correctOrder = ['หนังสือประวัติศาสตร์', 'หนังสือวิทยาศาสตร์', 'หนังสือคณิตศาสตร์'];
+            const isCorrect = gameState.variables.books.every((book, index) => book === correctOrder[index]);
             
-            // เปลี่ยนภาพประตูและเล่นแอนิเมชัน
-            if (this.player) {
-                // เก็บตำแหน่งประตูเดิม
-                const oldX = this.player.x;
-                const oldY = this.player.y;
-                
-                // ลบประตูเดิม
-                this.player.destroy();
-                
-                // สร้างประตูใหม่ในตำแหน่งเดิม
-                this.player = this.physics.add.sprite(oldX, oldY, "chestopen")
-                    .setScale(0.7); // ตั้งขนาดเริ่มต้น
-                
-                // เล่นแอนิเมชันประตูเปิด
-                this.tweens.add({
-                    targets: this.player,
-                    scaleX: this.openchestScale,
-                    scaleY: this.openchestScale,
-                    duration: 1000,
-                    ease: 'Power2',
-                    yoyo: true,
-                    repeat: 0,
-                    onComplete: () => {
-                        logToConsole('ประตูเปิดแล้ว! คุณสามารถไปด่านต่อไปได้');
-                        // ลบกระดาษและข้อความ
-                        if (this.paper) {
-                            this.paper.destroy();
-                        }
-                        if (this.paperText) {
-                            this.paperText.destroy();
-                        }
-                        
-                        // เพิ่มด่านที่ผ่านแล้วเข้าไปใน Set
-                        gameState.completedLevels.add(gameState.level);
-                        
-                        // อัพเดทสีด่านที่เสร็จแล้ว
-                        const completedLevel = document.querySelector(`.level-item[data-level="${gameState.level}"]`);
-                        if (completedLevel) {
-                            completedLevel.style.backgroundColor = '#1a1e2f';
-                            completedLevel.style.color = 'white';
-                            const playButton = completedLevel.querySelector('.play-button');
-                            if (playButton) {
-                                playButton.style.backgroundColor = '#45a049';
-                                playButton.style.color = 'white';
-                            }
-                        }
+            // ย้ายหนังสือไปยังตำแหน่งที่ถูกต้องตามลำดับที่ผู้เล่นเรียง
+            const bookPositions = [
+                { x: 220, y: 110 },   // ตำแหน่งชั้นที่ 1
+                { x: 220, y: 200 },  // ตำแหน่งชั้นที่ 2
+                { x: 220, y: 300 }   // ตำแหน่งชั้นที่ 3
+            ];
 
-                        // เปลี่ยนเครื่องหมายภารกิจจาก ✗ เป็น ✓
-                        const missionStatus = document.getElementById('else-checkbox');
-                        if (missionStatus) {
-                            missionStatus.textContent = '✓';
-                            missionStatus.style.color = '#00ff00';
-                            missionStatus.style.fontSize = '24px';
-                            missionStatus.style.transition = 'all 0.3s ease';
-                        }
+            // ย้ายหนังสือไปยังตำแหน่งที่ผู้เล่นเรียง
+            for (let i = 0; i < gameState.variables.books.length; i++) {
+                const book = gameState.variables.books[i];
+                let targetBook;
 
-                        // แสดงบทสนทนาขอแสดงความยินดี
-                        const dialogBox = this.add.graphics();
-                        const x = 90;
-                        const y = 290;
-                        
-                        // วาดกล่องข้อความ
-                        dialogBox.fillStyle(0x000000, 0.8);
-                        dialogBox.fillRect(x, y, 600, 100);
-                        dialogBox.lineStyle(2, 0xffffff);
-                        dialogBox.strokeRect(x, y, 600, 100);
+                if (book === 'หนังสือประวัติศาสตร์') {
+                    targetBook = this.historyBook;
+                } else if (book === 'หนังสือวิทยาศาสตร์') {
+                    targetBook = this.scienceBook;
+                } else if (book === 'หนังสือคณิตศาสตร์') {
+                    targetBook = this.mathBook;
+                }
 
-                        // เพิ่มรูปนักบิน
-                        const pilot = this.add.sprite(x + -20, y + 10, 'thief');
-                        pilot.setScale(0.5);
-                        pilot.setDepth(1002);
-                        
-                        // สร้างข้อความแสดงความยินดี
-                        const messages = [
-                            { text: "ยินดีด้วย! คุณทำภารกิจสำเร็จแล้ว", delay: 0 },
-                            { text: "คุณได้เรียนรู้การใช้งานตัวแปร const แล้ว", delay: 0 },
-                            { text: "ไปต่อที่ด่านถัดไปกันเถอะ!", delay: 0 }
-                        ];
-                        
-                        // สร้าง Text object
-                        const dialogText = this.add.text(x + 100, y + 30, '', {
-                            fontSize: '15px',
-                            fontFamily: 'Arial',
-                            color: '#ffffff',
-                            wordWrap: { width: 560 }
-                        });
+                if (targetBook) {
+                    this.tweens.add({
+                        targets: targetBook,
+                        x: bookPositions[i].x,
+                        y: bookPositions[i].y,
+                        duration: 1000,
+                        ease: 'Power2',
+                        onComplete: () => {
+                            if (i === 2) {  // เมื่อย้ายหนังสือเล่มสุดท้ายเสร็จ
+                                if (isCorrect) {
+                                    // เปลี่ยนเครื่องหมายภารกิจจาก ✗ เป็น ✓
+                                    const missionStatus = document.getElementById('else-checkbox');
+                                    if (missionStatus) {
+                                        missionStatus.textContent = '✓';
+                                        missionStatus.style.color = '#00ff00';
+                                        missionStatus.style.fontSize = '24px';
+                                        missionStatus.style.fontWeight = 'bold';
+                                    }
 
-                        // เก็บ index ของข้อความปัจจุบัน
-                        let currentMessageIndex = 0;
-                        let typingInterval = null;
-                        
-                        // ฟังก์ชันสำหรับแสดงข้อความแบบอนิเมชั่นการพิมพ์
-                        const showTypingMessage = (text) => {
-                            if (typingInterval) {
-                                clearInterval(typingInterval);
-                            }
-                            
-                            let currentText = '';
-                            let charIndex = 0;
-                            
-                            typingInterval = setInterval(() => {
-                                if (charIndex < text.length) {
-                                    currentText += text[charIndex];
-                                    dialogText.setText(currentText);
-                                    charIndex++;
-                                } else {
-                                    clearInterval(typingInterval);
-                                    typingInterval = null;
+                                    // แสดงข้อความยินดี
+                                    this.showSuccessDialogue();
                                 }
-                            }, 50);
-                        };
-                        
-                        // แสดงข้อความแรก
-                        showTypingMessage(messages[0].text);
-                        
-                        // สร้างเอฟเฟกต์เบลอสำหรับส่วนอื่นๆ ของเกม
-                        const blurEffect = this.add.graphics();
-                        blurEffect.fillStyle(0x000000, 0.5);
-                        blurEffect.fillRect(0, 0, GAME_CONFIG.width, GAME_CONFIG.height);
-                        
-                        // ทำให้กล่องข้อความและข้อความอยู่ด้านบนสุด
-                        dialogBox.setDepth(1000);
-                        dialogText.setDepth(1001);
-                        blurEffect.setDepth(999);
-                        
-                        // ฟังก์ชันสำหรับทำความสะอาด
-                        const cleanup = () => {
-                            if (typingInterval) {
-                                clearInterval(typingInterval);
                             }
-                            dialogBox.destroy();
-                            dialogText.destroy();
-                            blurEffect.destroy();
-                            pilot.destroy();
-                            this.input.off('pointerdown', handleClick);
-                        };
-                        
-                        // ฟังก์ชันจัดการการคลิก
-                        const handleClick = () => {
-                            currentMessageIndex++;
-                            if (currentMessageIndex < messages.length) {
-                                showTypingMessage(messages[currentMessageIndex].text);
-                            } else {
-                                cleanup();
-                            }
-                        };
-                        
-                        // เพิ่ม event listener สำหรับการคลิกที่ไหนก็ได้ในเกม
-                        this.input.on('pointerdown', handleClick);
-                        
-                        // เพิ่ม timeout เพื่อทำความสะอาดอัตโนมัติหลังจาก 10 วินาที
-                        this.time.delayedCall(10000, cleanup);
-
-                        // ปลดล็อด่านถัดไป
-                        const nextLevel = document.querySelector(`.level-item[data-level="${gameState.level + 1}"]`);
-                        if (nextLevel) {
-                            nextLevel.classList.remove('locked');
-                            const playButton = nextLevel.querySelector('.play-button');
-                            if (playButton) {
-                                playButton.disabled = false;
-                                playButton.style.opacity = '1';
-                                playButton.style.cursor = 'pointer';
-                            }
-                            const lockIcon = nextLevel.querySelector('.lock-icon');
-                            if (lockIcon) {
-                                lockIcon.remove();
-                            }
-                            // เพิ่ม hover effect สำหรับด่านที่เพิ่งปลดล็อค
-                            nextLevel.style.cursor = 'pointer';
-                            nextLevel.addEventListener('mouseenter', () => {
-                                nextLevel.style.transform = 'scale(1.02)';
-                                nextLevel.style.transition = 'transform 0.2s';
-                            });
-                            nextLevel.addEventListener('mouseleave', () => {
-                                nextLevel.style.transform = 'scale(1)';
-                            });
                         }
-                        
-                        // เพิ่มค่า level แต่ไม่เปลี่ยนด่านอัตโนมัติ
-                        gameState.level++;
-                    }
-                });
+                    });
+                }
             }
-        } else if (gameState.variables.chest !== undefined && !this.doorOpened) {
-            // เมื่อรหัสผ่านไม่ถูกต้องและประตูยังไม่เปิด
-            this.player.setVelocityX(0);
-            this.player.setVelocityY(0);
-            
-            if (!this.passcodeErrorLogged) {
-                console.log("รหัสผ่านไม่ถูกต้อง ลองใหม่อีกครั้ง");
-                this.passcodeErrorLogged = true;
-            }
+
+            this.booksArranged = true;
         }
     }
 }
@@ -539,11 +459,13 @@ function initializeEditor() {
     require.config({ paths: { vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.39.0/min/vs" } });
     require(["vs/editor/editor.main"], function () {
         gameState.editor = monaco.editor.create(document.getElementById("editor"), {
-            value: `// พิมพ์รหัสผ่านตามรูปแบบด้านล่างเพื่อเปิดประตู:
-// กำหนดตัวแปร เป็นค่าคงที่ และใส่ค่าให้กับตัวแปร
+            value: `// เรียงลำดับหนังสือให้ถูกต้องตามชั้น:
+// ชั้นที่ 1: หนังสือประวัติศาสตร์
+// ชั้นที่ 2: หนังสือวิทยาศาสตร์
+// ชั้นที่ 3: หนังสือคณิตศาสตร์
 
-let //ใส่คำสั่งตรงนี้;
-console.log(chest);`,
+let books = ["ชื่อหนังสือ", "ชื่อหนังสือ", "ชื่อหนังสือ"];
+console.log(books);`,
             language: "javascript",
             theme: "vs-dark",
             fontSize: 15,
@@ -649,7 +571,7 @@ function logToConsole(message) {
             icon.style.marginRight = '8px';
             logEntry.appendChild(icon);
             
-        } else if (message.includes('ประตู')) {
+        } else if (message.includes('ลำดับหนังสือถูกต้อง')) {
             logEntry.style.backgroundColor = 'rgba(0, 255, 0, 0.1)';
             logEntry.style.borderLeft = '4px solid #00cc00';
             logEntry.style.color = '#00cc00';
@@ -671,7 +593,7 @@ function logToConsole(message) {
             icon.innerHTML = '⛰️ ';
             icon.style.marginRight = '8px';
             logEntry.appendChild(icon);
-        } else if (message.includes('Error')) {
+        } else if (message.includes('กรุณาเรียงลำดับหนังสือให้ถูกต้อง')) {
             logEntry.style.backgroundColor = 'rgba(255, 0, 0, 0.1)';
             logEntry.style.borderLeft = '4px solid #cc0000';
             logEntry.style.color = '#cc0000';
