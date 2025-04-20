@@ -7,9 +7,39 @@
     <link rel="stylesheet" href="game.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.55.2/phaser.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.39.0/min/vs/loader.min.js"></script>
-
 </head>
 <body>
+    <!-- Top Menu Bar -->
+    <nav class="top-menu">
+        <div class="top-menu-left">
+            <a href="#" class="logo">Power of Thor</a>
+        </div>
+        <div class="top-menu-right">
+            <div class="score-section">
+                <span class="score-label">Best score</span>
+                <span class="score-value">1089</span>
+                <span class="percentage">25%</span>
+            </div>
+            <div class="rank-section">
+                <span class="rank-label">Rank</span>
+                <span class="rank-value">46,410 / 49,886</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mission Status Display -->
+    <div id="mission-status-container">
+        <h3>ภารกิจของคุณ</h3>
+        <div id="if-condition">
+            <span id="if-checkbox" class="status-icon">✗</span>
+            <span>ใช้คำสั่ง if</span>
+        </div>
+        <div id="else-condition">
+            <span id="else-checkbox" class="status-icon">✗</span>
+            <span>ใช้คำสั่ง else</span>
+        </div>
+    </div>
+
     <div class="area"></div><nav class="main-menu">
         <ul>
             <li>
@@ -72,19 +102,12 @@
                     </span>
                 </a>
             </li>
+
             <li>
                <a href="#">
                     <i class="fa fa-map-marker fa-2x"></i>
                     <span class="nav-text">
                         Member Map
-                    </span>
-                </a>
-            </li>
-            <li>
-                <a href="#">
-                   <i class="fa fa-info fa-2x"></i>
-                    <span class="nav-text">
-                        Documentation
                     </span>
                 </a>
             </li>
@@ -103,14 +126,137 @@
     </nav>
   
     <div class="game-wrapper">
-        <div id="gameContainer"></div>
-        <button onclick="runCode()" class="button">Run Code</button>
-        <div id="console-container">
-            <div id="console-output"></div>
+        <div class="game-content">
+            <div id="gameContainer"></div>
+            <div class="video-progress">
+                <div class="progress-bar">
+                    <div class="progress-bar-fill"></div>
+                </div>
+            </div>
+            <div class="frame-controls">
+                <button onclick="previousFrame()">⏮</button>
+                <button onclick="playPause()" id="playPauseBtn">▶</button>
+                <button onclick="nextFrame()">⏭</button>
+                <span class="frame-counter">Frame: <span id="frameCounter">0</span></span>
+                <div class="controls-right">
+                    <button>⚙️</button>
+                    <button>↗️</button>
+                    <button>⛶</button>
+                </div>
+            </div>
+            <div class="doc-section">
+                <h2 class="doc-title">📚 อธิบายเกม</h2>
+                <div class="doc-content">
+                    <div class="doc-card">
+                        <h3 class="doc-subtitle">📜 กติกา</h3>
+                        <div class="doc-text">
+                            <p>ผู้เล่นต้องเขียน console.log(ทิศทางที่จะเดิน)</p>
+                            <p>โดยต้องเดินไปที่เป้าหมายที่กำหนดไว้</p>
+                            <div class="code-block">
+                                <code>console.log(ทิศทางที่จะเดิน)</code>
+                            </div>
+                            <p>โดยทิศทางมี E , N , W , S ซึ่งหมายถึง ขวา , ขึ้น , ซ้าย , ลง</p>
+                        </div>
+                    </div>
+
+                    <div class="doc-card">
+                        <h3 class="doc-subtitle">🏆 เงื่อนไขการชนะ</h3>
+                        <div class="doc-text">
+                            <p>เดินไปที่เป้าหมายที่กำหนดไว้</p>
+                        </div>
+                    </div>
+
+                    <div class="doc-card">
+                        <h3 class="doc-subtitle">💥 เงื่อนไขการแพ้</h3>
+                        <div class="doc-text">
+                            <ul class="doc-list">
+                                <li>เลือดของคุณหมด</li>
+                                <li>ไม่มีการยิง หรือคำสั่งทำงานช้าเกินไป</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="doc-card">
+                        <h3 class="doc-subtitle">🧪 หมายเหตุ</h3>
+                        <div class="doc-text">
+                            <p>ระบบตรวจคำตอบและระบบให้คะแนนจะมีความแตกต่างกันเล็กน้อยเพื่อป้องกันการใส่คำตอบแบบ hard-code</p>
+                        </div>
+                    </div>
+
+                    <div class="doc-card">
+                        <h3 class="doc-subtitle">🧾 ข้อมูลอินพุตในแต่ละรอบ</h3>
+                        <div class="doc-text">
+                            <p>มีทั้งหมด 6 บรรทัด</p>
+                            <p>แต่ละบรรทัดคือจำนวนเต็มที่แทน ความสูงของภูเขา (1 ถึง 6)</p>
+                            <div class="example-block">
+                                <h4>ตัวอย่างอินพุต:</h4>
+                                <pre class="code-example"><code>4
+2
+6
+3
+1</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="doc-card">
+                        <h3 class="doc-subtitle">🖥️ คำสั่งเอาต์พุตในแต่ละรอบ</h3>
+                        <div class="doc-text">
+                            <p>พิมพ์เพียง 1 บรรทัดเป็นเลข index ของภูเขาที่จะยิง (1 ถึง 6)</p>
+                            <div class="example-block">
+                                <h4>ตัวอย่างการใช้งาน:</h4>
+                                <pre class="code-example"><code class="language-javascript">console.log(3)  // หากภูเขาที่สูงที่สุดคือหมายเลข 3</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-    
+
+    <!-- Console Output -->
+    <div id="console-container">
+        <div id="console-output"></div>
+    </div>
+
     <div id="editor"></div>
+    
+    <!-- Controls Section -->
+    <div class="editor-controls">
+        <div class="level-selector">
+            <div class="level-item active" data-level="1" onclick="window.location.href='../game.html'">
+                <div class="level-info">
+                    <h3>ด่านที่ 1</h3>
+                    <p>ภารกิจอัลฟ่า: ยิงแม่นคำสั่งเดียว</p>
+                </div>
+                <div class="level-status unlocked">พร้อมเล่น</div>
+            </div>
+            <div class="level-item" data-level="2">
+                <div class="level-info">
+                    <h3>ด่านที่ 2</h3>
+                    <p>ภารกิจเบต้า: พลังแห่งลูป</p>
+                </div>
+                <div class="level-status unlocked">กำลังเล่น</div>
+            </div>
+            <div class="level-item" data-level="3" onclick="window.location.href='../level3/game3.html'">
+                <div class="level-info">
+                    <h3>ด่านที่ 3</h3>
+                    <p>ภารกิจรัซ: ลูปที่มีเงื่อนไข</p>
+                </div>
+                <div class="level-status unlocked">พร้อมเล่น</div>
+            </div>
+            <div class="level-item" data-level="4" onclick="window.location.href='../level4/game4.html'">
+                <div class="level-info">
+                    <h3>ด่านที่ 4</h3>
+                    <p>ภารกิจดับเบิล: ลูปที่เป็นเลขคู่</p>
+                </div>
+                <div class="level-status unlocked">พร้อมเล่น</div>
+            </div>
+        </div>
+    </div>
+    <button class="play-testcase-button" onclick="runCode()">▶ PLAY TESTCASE</button>
+
+
     <script src="game.js"></script>
     <script src="gameWorker.js"></script>
     <script src="phaser.min.js"></script>

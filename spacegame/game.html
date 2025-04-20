@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game</title>
+    <link rel="stylesheet" href="game.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.55.2/phaser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.39.0/min/vs/loader.min.js"></script>
+</head>
+
+<body>
+    <nav class="top-menu">
+        <div class="top-menu-left">
+            <span class="score-label">Space Survey 1</span>
+        </div>
+        
+    </nav>
+
+    <div id="mission-status-container">
+        <h3>ภารกิจของคุณ</h3>
+        <div id="if-condition">
+
+        </div>
+        <div id="else-condition">
+            <span id="else-checkbox" class="status-icon">✗</span>
+            <span>กำจัดภูเขาทั้งหมด</span>
+        </div>
+    </div>
+
+    <div class="area"></div>
+    <nav class="main-menu">
+        <ul>
+            <li>
+                <a href="https://jbfarrow.com">
+                    <i class="fa fa-home fa-2x"></i>
+                    <span class="nav-text">
+                        Community Dashboard
+                    </span>
+                </a>
+
+            </li>
+            <li class="has-subnav">
+                <a href="#">
+                    <i class="fa fa-globe fa-2x"></i>
+                    <span class="nav-text">
+                        Global Surveyors
+                    </span>
+                </a>
+
+            </li>
+            <li class="has-subnav">
+                <a href="#">
+                    <i class="fa fa-comments fa-2x"></i>
+                    <span class="nav-text">
+                        Group Hub Forums
+                    </span>
+                </a>
+
+            </li>
+            <li class="has-subnav">
+                <a href="#">
+                    <i class="fa fa-camera-retro fa-2x"></i>
+                    <span class="nav-text">
+                        Survey Photos
+                    </span>
+                </a>
+
+            </li>
+            <li>
+                <a href="#">
+                    <i class="fa fa-film fa-2x"></i>
+                    <span class="nav-text">
+                        Surveying Tutorials
+                    </span>
+                </a>
+            </li>
+            <li>
+                <a href="#">
+                    <i class="fa fa-book fa-2x"></i>
+                    <span class="nav-text">
+                        Surveying Jobs
+                    </span>
+                </a>
+            </li>
+            <li>
+                <a href="#">
+                    <i class="fa fa-cogs fa-2x"></i>
+                    <span class="nav-text">
+                        Tools & Resources
+                    </span>
+                </a>
+            </li>
+
+            <li>
+                <a href="#">
+                    <i class="fa fa-map-marker fa-2x"></i>
+                    <span class="nav-text">
+                        Member Map
+                    </span>
+                </a>
+            </li>
+        </ul>
+
+        <ul class="logout">
+            <li>
+                <a href="#">
+                    <i class="fa fa-power-off fa-2x"></i>
+                    <span class="nav-text">
+                        Logout
+                    </span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <div class="game-wrapper">
+        <div class="game-content">
+            <div id="gameContainer"></div>
+            <div class="video-progress">
+                <div class="progress-bar">
+                    <div class="progress-bar-fill"></div>
+                </div>
+            </div>
+          
+            </div>
+            <div class="doc-section">
+                <h2 class="doc-title">📚 อธิบายเกม</h2>
+                <div class="doc-content">
+                    <div class="doc-card">
+                        <h3 class="doc-subtitle">📜 กติกา</h3>
+                        <div class="doc-text">
+                            <p>ในแต่ละรอบของเกม คุณจะได้รับ ความสูงของภูเขาทั้ง 6 ลูก เรียงจากซ้ายไปขวา (index 1 ถึง 6)</p>
+                            <p>ก่อนจบรอบนั้น คุณต้อง ยิงภูเขาที่สูงที่สุด โดยพิมพ์</p>
+                            <div class="code-block">
+                                <code>console.log(หมายเลข index ของภูเขา)</code>
+                            </div>
+                            <p>การยิงแต่ละครั้งจะพังภูเขาลงมา</p>
+                            <p>หลังจากทุกครั้งที่ยิง ยานของคุณจะ ลดระดับลงมาใกล้ภูเขามากขึ้น</p>
+                        </div>
+                    </div>
+
+                    <div class="doc-card">
+                        <h3 class="doc-subtitle">🏆 เงื่อนไขการชนะ</h3>
+                        <div class="doc-text">
+                            <p>คุณชนะเมื่อสามารถทำลายภูเขาทั้งหมดได้สำเร็จ</p>
+                        </div>
+                    </div>
+
+                    <div class="doc-card">
+                        <h3 class="doc-subtitle">💥 เงื่อนไขการแพ้</h3>
+                        <div class="doc-text">
+                            <ul class="doc-list">
+                                <li>ยานของคุณชนเข้ากับภูเขา</li>
+                                <li>ไม่มีการยิง หรือคำสั่งทำงานช้าเกินไป</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="doc-card">
+                        <h3 class="doc-subtitle">🧪 หมายเหตุ</h3>
+                        <div class="doc-text">
+                            <p>ระบบตรวจคำตอบและระบบให้คะแนนจะมีความแตกต่างกันเล็กน้อยเพื่อป้องกันการใส่คำตอบแบบ hard-code</p>
+                        </div>
+                    </div>
+
+                    <div class="doc-card">
+                        <h3 class="doc-subtitle">🧾 ข้อมูลอินพุตในแต่ละรอบ</h3>
+                        <div class="doc-text">
+                            <p>มีทั้งหมด 6 บรรทัด</p>
+                            <p>แต่ละบรรทัดคือจำนวนเต็มที่แทน ความสูงของภูเขา (1 ถึง 6)</p>
+                            <div class="example-block">
+                                <h4>ตัวอย่างอินพุต:</h4>
+                                <pre class="code-example"><code>4
+2
+6
+3
+1</code></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="doc-card">
+                        <h3 class="doc-subtitle">🖥️ คำสั่งเอาต์พุตในแต่ละรอบ</h3>
+                        <div class="doc-text">
+                            <p>พิมพ์เพียง 1 บรรทัดเป็นเลข index ของภูเขาที่จะยิง (1 ถึง 6)</p>
+                            <div class="example-block">
+                                <h4>ตัวอย่างการใช้งาน:</h4>
+                                <pre class="code-example"><code class="language-javascript">console.log(3)  // หากภูเขาที่สูงที่สุดคือหมายเลข 3</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Console Output -->
+    <div id="console-container">
+        <div id="console-output"></div>
+    </div>
+
+    <div id="editor"></div>
+
+    <!-- Controls Section -->
+    <div class="editor-controls">
+        <div class="level-selector">
+            <div class="level-item active" data-level="1">
+                <div class="level-info">
+                    <h3>ด่านที่ 1</h3>
+                    <p>ภารกิจอัลฟ่า: ยิงแม่นคำสั่งเดียว</p>
+                </div>
+                <div class="level-status unlocked">กำลังเล่น</div>
+            </div>
+            <div class="level-item" data-level="2" onclick="window.location.href='level2/game2.html'">
+                <div class="level-info">
+                    <h3>ด่านที่ 2</h3>
+                    <p>ภารกิจเบต้า: พลังแห่งลูป</p>
+                </div>
+                <div class="level-status unlocked">พร้อมเล่น</div>
+            </div>
+            <div class="level-item" data-level="3" onclick="window.location.href='level3/game3.html'">
+                <div class="level-info">
+                    <h3>ด่านที่ 3</h3>
+                    <p>ภารกิจรัซ: ลูปที่มีเงื่อนไข</p>
+                </div>
+                <div class="level-status unlocked">พร้อมเล่น</div>
+            </div>
+            <div class="level-item" data-level="4" onclick="window.location.href='level4/game4.html'">
+                <div class="level-info">
+                    <h3>ด่านที่ 4</h3>
+                    <p>ภารกิจดับเบิล: ลูปที่เป็นเลขคู่</p>
+                </div>
+                <div class="level-status unlocked">พร้อมเล่น</div>
+            </div>
+        </div>
+    </div>
+
+    <button class="play-testcase-button" onclick="runTestCase()">▶ RUN CODE</button>
+
+    <script src="phaser.min.js"></script>
+    <script src="game.js"></script>
+    <script src="gameWorker.js"></script>
+    <script src="level2.js"></script>
+</body>
+
+</html>
