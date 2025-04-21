@@ -35,6 +35,7 @@ function handleRun(code) {
     try {
         const sandbox = createSandbox();
         executeCode(code, sandbox);
+        postMessage({ type: 'done' });
     } catch (error) {
         postMessage({ 
             type: 'error', 

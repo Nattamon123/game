@@ -429,7 +429,7 @@ class GameScene extends Phaser.Scene {
             console.log('All mountains destroyed!');
             
             const code = gameState.editor.getValue();
-            const hasWhileLoop = code.includes('while(') || code.includes('while (');
+            const hasWhileLoop = /\bwhile\s*\([^)]*\)\s*\{[^}]*\}/.test(code);
             
             if (!hasWhileLoop) {
                 logToConsole('⚠️ คุณต้องใช้ while loop เพื่อทำภารกิจให้สำเร็จ!');
@@ -442,6 +442,28 @@ class GameScene extends Phaser.Scene {
                 }
                 return;
             }
+
+            const analysis = this.analyzeCodeComplexity(code);
+            let complexity = 'O(1)';
+            let message = 'โค้ดของคุณมีประสิทธิภาพดีเยี่ยม! 🚀';
+
+            if (analysis.hasWhileLoop) {
+                complexity = 'O(n)';
+                message = 'โค้ดของคุณมีประสิทธิภาพดี! 👍';
+            }
+
+            if (analysis.hasForLoop) {
+                complexity = 'O(n²)';
+                message = 'ลองลดการใช้ลูปซ้อนกันเพื่อเพิ่มประสิทธิภาพ! 💡';
+            }
+
+            if (analysis.hasIfStatement) {
+                complexity = 'O(2ⁿ)';
+                message = 'ลองใช้ลูปแทนการเรียกซ้ำเพื่อเพิ่มประสิทธิภาพ! 💡';
+            }
+
+            logToConsole(`⏱️ Time Complexity: ${complexity}`);
+            logToConsole(`💬 ${message}`);
             
             logToConsole('🎉 ยินดีด้วย! คุณทำภารกิจสำเร็จแล้ว');
             
